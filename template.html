@@ -600,11 +600,8 @@
           <small class="pyfont-hint" id="seg-hint" hidden></small>
         </div>
         <div class="ctl pyfont-ctl" id="ph-ctl">
-          <label class="lbl" data-i18n="ph.lbl">音标</label>
-          <div class="seg" role="group" aria-label="音标方案" data-i18n-aria="ph.lbl">
-            <button type="button" id="ph-py" class="on" data-i18n="ph.py">拼音</button>
-            <button type="button" id="ph-zy" data-i18n="ph.zy">注音</button>
-          </div>
+          <label class="lbl" for="ph-scheme" data-i18n="ph.lbl">音标</label>
+          <select id="ph-scheme" aria-label="音标方案" data-i18n-aria="ph.lbl"></select>
         </div>
         <div class="ctl pyfont-ctl" id="zydir-ctl">
           <label class="lbl" data-i18n="l.zydir">注音方向</label>
@@ -909,6 +906,7 @@ var I18N = {
     "ph.lbl": "音標",
     "ph.py": "拼音",
     "ph.zy": "注音",
+    "ph.tongyong": "通用拼音",
     "l.zydir": "注音方向",
     "zydir.aria": "注音方向",
     "zydir.h": "橫排",
@@ -1135,6 +1133,7 @@ var I18N = {
     "ph.lbl": "Phonetics",
     "ph.py": "Pinyin",
     "ph.zy": "Zhuyin",
+    "ph.tongyong": "Tongyong Pinyin",
     "l.zydir": "Zhuyin layout",
     "zydir.aria": "Zhuyin layout",
     "zydir.h": "Horizontal",
@@ -1572,6 +1571,98 @@ function applyI18n() {
     }
     return '<span class="pazy-i' + ti + '"><span class="pazy-h">' + ch + '</span><span class="pazy-z">' + s + "</span></span>";
   }
+  /* ===== 通用拼音（Tongyong Pinyin）=====
+     规则依据：教育部《中文譯音使用原則》通用拼音方案，与汉语拼音的差异集中在这几处：
+       zh → jh；j / q / x → j / c / s；舌尖元音 i → ih（jhi → jhih）；
+       ㄩ 系写作 yu（jü → jyu、nü → nyu、lü → lyu、jiong → jyong）；
+       -iou / -uei 不缩写（liu → liou、dui → duei）；
+       wen → wun、weng → wong、feng → fong；
+       叹词 hm / hng 归并为 heng。
+     输入是带调拼音音节，输出仍是带调拉丁字母（音标字体与拼音共用），
+     调号按「a > o > e > ê，iu 标 u、ui 标 i，其余标唯一元音」重新落位。 */
+  var TY_TONE = {
+    a: ["a", "\u0101", "\u00E1", "\u01CE", "\u00E0"],
+    e: ["e", "\u0113", "\u00E9", "\u011B", "\u00E8"],
+    i: ["i", "\u012B", "\u00ED", "\u01D0", "\u00EC"],
+    o: ["o", "\u014D", "\u00F3", "\u01D2", "\u00F2"],
+    u: ["u", "\u016B", "\u00FA", "\u01D4", "\u00F9"],
+    "ü": ["ü", "\u01D6", "\u01D8", "\u01DA", "\u01DC"],
+    "ê": ["ê", "ê\u0304", "\u1EBF", "ê\u030C", "\u1EC1"],
+    m: ["m", "m\u0304", "\u1E3F", "m\u030C", "m\u0300"],
+    n: ["n", "n\u0304", "\u0144", "\u0148", "\u01F9"]
+  };
+  var TY_SIB = { zh: 1, ch: 1, sh: 1, r: 1, z: 1, c: 1, s: 1 };   // 舌尖元音声母
+  var TY_INI_OUT = { zh: "jh", j: "j", q: "c", x: "s" };
+  /* 拼音基础音节（无调）→ 通用拼音拼写 */
+  function tyBaseOf(base) {
+    var s = base.replace(/v/g, "ü").toLowerCase();
+    if (s === "wen") return "wun";
+    if (s === "weng") return "wong";
+    if (s === "feng") return "fong";
+    if (s === "hm" || s === "hng") return "heng";
+    /* 儿化尾 r：去掉 r 转换剩余部分再补回 */
+    if (s.length > 2 && s !== "er" && s.charAt(s.length - 1) === "r") {
+      var stem = tyBaseOf(s.slice(0, -1));
+      return stem ? stem + "r" : null;
+    }
+    var ini = "", rest = s;
+    if (s.slice(0, 2) === "zh" || s.slice(0, 2) === "ch" || s.slice(0, 2) === "sh") {
+      ini = s.slice(0, 2); rest = s.slice(2);
+    } else if ("bpmfdtnlgkhjqxrzcs".indexOf(s.charAt(0)) >= 0) {
+      ini = s.charAt(0); rest = s.slice(1);
+    }
+    if (TY_SIB[ini] && rest === "i") return (TY_INI_OUT[ini] || ini) + "ih";   // 舌尖元音
+    var o = TY_INI_OUT[ini] || ini;
+    if (ini === "j" || ini === "q" || ini === "x") {
+      if (rest === "u") return o + "yu";
+      if (rest === "ue") return o + "yue";
+      if (rest === "uan") return o + "yuan";
+      if (rest === "un") return o + "yun";
+      if (rest === "iong") return o + "yong";
+    }
+    if (ini === "n" || ini === "l") {
+      if (rest === "ü") return o + "yu";
+      if (rest === "üe") return o + "yue";
+      if (rest === "üan") return o + "yuan";
+      if (rest === "ün") return o + "yun";
+    }
+    if (rest === "iu") rest = "iou";
+    else if (rest === "ui") rest = "uei";
+    return o + rest;
+  }
+  /* 调号落位：a > o > e > ê；iu 标 u、ui 标 i；否则标唯一元音 */
+  function tyToneAt(base) {
+    if (base === "m" || base === "n" || base === "ng") return 0;
+    if (base.indexOf("a") >= 0) return base.indexOf("a");
+    if (base.indexOf("o") >= 0) return base.indexOf("o");
+    if (base.indexOf("e") >= 0) return base.indexOf("e");
+    if (base.indexOf("ê") >= 0) return base.indexOf("ê");
+    if (base.indexOf("iu") >= 0) return base.indexOf("iu") + 1;
+    if (base.indexOf("ui") >= 0) return base.indexOf("ui");
+    for (var i = base.length - 1; i >= 0; i--) if ("iuü".indexOf(base.charAt(i)) >= 0) return i;
+    return -1;
+  }
+  /* 带调拼音音节 → 通用拼音音节；非标准音节返回 null（调用方回退显示原拼音） */
+  function pyToTongyong(py) {
+    if (!py) return null;
+    var base = "", tone = 5;
+    for (var i = 0; i < py.length; i++) {
+      var c = py.charAt(i), t = ZY_TONE_CHARS[c];
+      if (t) { base += t[0]; tone = t[1]; } else base += c;
+    }
+    var ty = tyBaseOf(base);
+    if (!ty) return null;
+    if (tone < 2 || tone > 4) return ty;   // 一声 / 轻声不标
+    var idx = tyToneAt(ty);
+    if (idx < 0) return ty;
+    var row = TY_TONE[ty.charAt(idx)];
+    if (!row) return ty;
+    return ty.slice(0, idx) + row[tone] + ty.slice(idx + 1);
+  }
+  function tyText(py) {
+    var r = pyToTongyong(py);
+    return r === null ? py : r;
+  }
   /* ===== 音标方案注册表 =====
      读音层始终以拼音存储，输出层只负责「拼音音节 → 目标拼写」的序列化。
      每个方案提供四个序列化入口与四个能力标志，业务逻辑一律按能力判断，不再比对具体 id：
@@ -1627,6 +1718,27 @@ function applyI18n() {
       return useIvs ? zyIvsHtml(ch, py) : zyWebItemHtml(esc(ch), py);
     }
   });
+
+  registerPhScheme({
+    id: "ty",
+    label: "通用拼音",
+    i18n: "ph.tongyong",
+    labelKind: "py",        // 拉丁字母方案，复用「拼音位置 / 上方 / 右侧」那套文案
+    script: "latin",
+    pyFont: true,
+    wordRuby: true,
+    webFormat: false,
+    text: tyText,
+    rtHtml: tyText,
+    charRuby: function (ch, py) {
+      return '<span class="py-result-item"><ruby><span class="py-chinese-item">' + esc(ch) +
+        '</span><rp>(</rp><rt class="py-pinyin-item">' + esc(tyText(py)) + "</rt><rp>)</rp></ruby></span>";
+    },
+    webItem: null
+  });
+
+  /* 侧栏下拉框的显示顺序（注册顺序不参与排序，便于日后插入新方案） */
+  var PH_ORDER = ["py", "ty", "zy"];
 
   // 变体默认（zhuyin 版注入 __VARIANT.ph = "zy"）；未知 id 一律回落到拼音
   phonetic = (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) ? window.__VARIANT.ph : "py";
@@ -3079,10 +3191,23 @@ function applyI18n() {
     document.body.dataset.ph = sch.id;   // 供 CSS / 调试按方案挂样式
     return sch;
   }
-  function syncPhButtons(m) {
+  /* 音标方案下拉框：选项按 PH_ORDER 从注册表生成，文案走 i18n（ph.py / ph.tongyong / ph.zy） */
+  function renderPhOptions() {
+    var sel = $("ph-scheme");
+    if (!sel) return;
+    var html = "";
+    for (var i = 0; i < PH_ORDER.length; i++) {
+      var sch = PH_SCHEMES[PH_ORDER[i]];
+      if (!sch) continue;
+      html += '<option value="' + sch.id + '">' + esc(i18nT(sch.i18n || "ph." + sch.id, sch.label)) + "</option>";
+    }
+    sel.innerHTML = html;
+    sel.value = phonetic;
+  }
+  function syncPhScheme(m) {
     var sch = setPhonetic(m);
-    $("ph-py").className = sch.id === "py" ? "on" : "";
-    $("ph-zy").className = sch.id === "zy" ? "on" : "";
+    var sel = $("ph-scheme");
+    if (sel) sel.value = sch.id;
     applyShowpyLabels();
     syncZywebFmt();
     autoSwitchPyFont(sch.id);
@@ -3126,14 +3251,9 @@ function applyI18n() {
     if (bv) bv.textContent = dm[2];
     if (dseg) dseg.setAttribute("aria-label", dm[0]);
   }
-  $("ph-py").addEventListener("click", function () {
-    if (getPhScheme().id === "py") return;
-    syncPhButtons("py");
-    renderView();
-  });
-  $("ph-zy").addEventListener("click", function () {
-    if (getPhScheme().id === "zy") return;
-    syncPhButtons("zy");
+  $("ph-scheme").addEventListener("change", function () {
+    if (this.value === phonetic) return;
+    syncPhScheme(this.value);
     renderView();
   });
   // 标注方向：横排（拼音=上方，注音=两岸横排通行）/ 直排（注音=台湾直式教科书风格、
@@ -3197,7 +3317,7 @@ function applyI18n() {
     $("print-footer").checked = true;
     document.body.classList.remove("no-print-footer");
     // 音标方案：恢复拼音（标注方向一并恢复出厂默认的横排 / 上方）
-    syncPhButtons("py");
+    syncPhScheme("py");
     setZyDir("h");
     // 读音标准：恢复大陆读音
     setTwStd(false);
@@ -3310,8 +3430,8 @@ function applyI18n() {
       if (SEG_DICT_B64 || saved.seg === "none") setSegScheme(saved.seg);
     }
     // 音标方案（拼音 / 注音 / 已注册的其他方案）
-    if (saved.ph && PH_SCHEMES[saved.ph]) syncPhButtons(saved.ph);
-    else if (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) syncPhButtons(window.__VARIANT.ph);  // zhuyin 版默认注音
+    if (saved.ph && PH_SCHEMES[saved.ph]) syncPhScheme(saved.ph);
+    else if (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) syncPhScheme(window.__VARIANT.ph);  // zhuyin 版默认注音
     // 标注方向（横排 / 直排，两种音标模式共用）
     if (saved.zydir === "h" || saved.zydir === "v") setZyDir(saved.zydir);
     // 读音标准（台湾读音差异表为懒加载，恢复后异步重渲染）
@@ -3586,9 +3706,9 @@ function applyI18n() {
           }
         } else {
           for (i3 = 0; i3 < tk2.length; i3++) {
-            wInner += '<span class="py-result-item"><ruby><span class="py-chinese-item">' + esc(tk2[i3]) + '</span><rp>(</rp><rt class="py-pinyin-item">' + esc(rsAll[i3]) + '</rt><rp>)</rp></ruby></span>';
+            wInner += sch.charRuby(tk2[i3], rsAll[i3]);
           }
-          rubyLine += "<ruby>" + esc(tk2) + "<rt>" + rsAll.map(esc).join(" ").trim() + "</rt></ruby>";
+          rubyLine += "<ruby>" + esc(tk2) + "<rt>" + rsAll.map(function (r) { return esc(sch.text(r)); }).join(" ").trim() + "</rt></ruby>";
           webInner += esc(tk2);   // HTML+CSS 注音仅注音类方案提供；其他方案按纯文本拼接
         }
         for (i3 = 0; i3 < tk2.length; i3++) pairLine += tk2[i3] + "「" + plainSyl[i3] + "」";
@@ -3709,13 +3829,15 @@ function applyI18n() {
   var SAMPLE_TW = "小螞蟻搬家（示例文章）\n天要下雨了，小螞蟻們排著長長的隊伍往高處搬家。\n一隻小螞蟻揹著一粒大豆子，走得慢極了。小螞蟻可兒說：「大家不要著急，一步一步走，就一定能到家。」\n雨點落下來的時候，牠們正好鑽進了新家。可兒的媽媽端出一小盤點心，讓大家歇一會兒，小螞蟻們高興地喊：「我們成功啦」";
   // 示例文章随界面语言：繁体界面填繁体版，简体 / 英文界面填简体版
   function sampleForLang() { return (window.__LANG === "tw") ? SAMPLE_TW : SAMPLE_TEXT; }
+  // 音标方案下拉框：先按注册表生成选项，后面恢复保存样式时才能正确选中
+  renderPhOptions();
   // 「保存样式」的样式在首次渲染前应用
   applySavedStyle();
   // 变体默认态（zhuyin 版）：无保存设置时同步注音按钮/正文类，并触发台湾读音差异表懒加载
   var __hasSavedStyle = false;
   try { __hasSavedStyle = !!localStorage.getItem(STYLE_KEY); } catch (eVStyle) { __hasSavedStyle = false; }
   if (!__hasSavedStyle) {
-    syncPhButtons(phonetic);
+    syncPhScheme(phonetic);
     if (twStd) setTwStd(true);
   }
   renderView();
@@ -3725,7 +3847,7 @@ function applyI18n() {
     current: function () { return phonetic; },
     set: function (id) {
       if (!PH_SCHEMES[id]) return false;
-      syncPhButtons(id);
+      syncPhScheme(id);
       renderView();
       return true;
     }
@@ -3758,6 +3880,7 @@ function applyI18n() {
           window.__LANG = L;
           try { localStorage.setItem("py-lang", L); } catch (eLang) {}
           applyI18n();                       // 静态节点 + title + html lang
+          renderPhOptions();                 // 音标方案下拉：选项文案随语言刷新
           if (typeof applyShowpyLabels === "function") applyShowpyLabels();  // 音标/注音显示标签随模式+语言刷新
           syncLangBtns();
           renderView();                      // 字数 / 页码 / 空态提示等动态文案
