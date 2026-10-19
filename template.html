@@ -600,11 +600,8 @@
           <small class="pyfont-hint" id="seg-hint" hidden></small>
         </div>
         <div class="ctl pyfont-ctl" id="ph-ctl">
-          <label class="lbl" data-i18n="ph.lbl">音标</label>
-          <div class="seg" role="group" aria-label="音标方案" data-i18n-aria="ph.lbl">
-            <button type="button" id="ph-py" class="on" data-i18n="ph.py">拼音</button>
-            <button type="button" id="ph-zy" data-i18n="ph.zy">注音</button>
-          </div>
+          <label class="lbl" for="ph-scheme" data-i18n="ph.lbl">音标</label>
+          <select id="ph-scheme" aria-label="音标方案" data-i18n-aria="ph.lbl"></select>
         </div>
         <div class="ctl pyfont-ctl" id="zydir-ctl">
           <label class="lbl" data-i18n="l.zydir">注音方向</label>
@@ -645,12 +642,13 @@
           <label class="check"><input type="checkbox" id="allfonts-toggle"> <span data-i18n="ck.allfonts">列出本机全部已安装字体</span></label>
           <small class="pyfont-hint" data-i18n="allfonts.hint">默认只显示常用字体，避免下拉列表过长；勾选后需较新版本的 Chrome / Edge，首次使用时浏览器会请求「字体访问」权限。</small>
         </div>
-        <div class="ctl">
+        <div class="ctl pyfont-ctl">
           <label class="lbl" data-i18n="l.ts">「一 / 不」变调</label>
           <div class="seg" role="group" aria-label="一不变调标注方式" data-i18n-aria="ts.aria">
-            <button id="ts-on" class="on" type="button" data-i18n="ts.on">标实际读音</button>
-            <button id="ts-off" type="button" data-i18n="ts.off">标原调</button>
+            <button id="ts-on" class="on" type="button" data-i18n="ts.on">标变调</button>
+            <button id="ts-off" type="button" data-i18n="ts.off">标本调</button>
           </div>
+          <small class="pyfont-hint" data-i18n="ts.hint">「变调」按语流中的实际读音标注（一个 yí gè）；「本调」按词典里的声调标注（一个 yī gè）。两者都是规范写法，只是取舍不同。</small>
         </div>
         <div class="ctl pyfont-ctl" id="std-ctl">
           <label class="lbl" data-i18n="l.rdstd">读音标准</label>
@@ -736,7 +734,7 @@
       <li data-i18n="help.li8">关于粤语注音：粤拼等标音方案的标准较为混乱，暂未找到权威的教学标准和可用的开源库，本工具暂时只支持汉语拼音与注音符号；欢迎香港的朋友提供权威参考资料或推荐可用方案；</li>
       <li data-i18n="help.li9">阅读模式底部新增跟读工具条：逐句高亮、自动滚动、语音朗读与麦克风跟读，并记住上次读到的位置；点阅读模式中的字可直接跳到该句。语音朗读使用浏览器内置 Web Speech API；麦克风跟读依赖浏览器语音识别服务，可能联网处理音频，介意时请勿开启。</li>
     </ol>
-    <p class="privacy" data-i18n="help.privacy">内容安全说明：全部注音转换都在您自己的浏览器里完成，文章内容不会上传到任何服务器，可以放心处理校内稿件。「一 / 不」默认按实际读音标注变调，如需与教材原调标注一致，可切换为「标原调」。「检查更新」仅联网获取拼音引擎的新版本，不会上传文章内容。</p>
+    <p class="privacy" data-i18n="help.privacy">内容安全说明：全部注音转换都在您自己的浏览器里完成，文章内容不会上传到任何服务器，可以放心处理校内稿件。「一 / 不」默认按语流中的实际读音标注变调（一个 yí gè），如需与词典中的本调一致，可切换为「标本调」（一个 yī gè）。「检查更新」仅联网获取拼音引擎的新版本，不会上传文章内容。</p>
     </div>
   </div>
 </section>
@@ -909,6 +907,7 @@ var I18N = {
     "ph.lbl": "音標",
     "ph.py": "拼音",
     "ph.zy": "注音",
+    "ph.tongyong": "通用拼音",
     "l.zydir": "注音方向",
     "zydir.aria": "注音方向",
     "zydir.h": "橫排",
@@ -933,8 +932,9 @@ var I18N = {
     "rs.hint": "普通話讀音以《現代漢語詞典》為準（資料來源 <code>zh-lx/pinyin-pro</code> 專案），臺灣讀音以《重編國語辭典修訂本》為準（資料來源 <code>g0v/萌典</code> 專案）。",
     "rs.decompressFail": "目前瀏覽器不支援解壓縮臺灣讀音差異表（需較新版本的 Chrome / Edge / Firefox / Safari），已回退為普通話讀音。",
     "ts.aria": "一不變調標註方式",
-    "ts.on": "標實際讀音",
-    "ts.off": "標原調",
+    "ts.on": "標變調",
+    "ts.off": "標本調",
+    "ts.hint": "「變調」按語流中的實際讀音標註（一個 yí gè）；「本調」按詞典裡的聲調標註（一個 yī gè）。兩者都是規範寫法，只是取捨不同。",
     "l.erhua": "兒化音",
     "eh.aria": "兒化音標註方式",
     "eh.char": "逐字注音",
@@ -962,7 +962,7 @@ var I18N = {
     "help.li6": "「複製內容及音標」支援五種格式：富文本（直接貼進 Word）、HTML ruby 標籤、HTML+CSS 注音（網頁原始碼，橫排 / 直排都與預覽一致，可配網路字體；直排配「注音芫荽」字型時讀音以 IVS 寫入文字）、字「音標」逐字對照、只複製音標（含標點）。Word 對注音聲調定位的支援有限，富文本中注音為橫排、聲調符號綴在符號末尾，需要精確排版請用後兩種格式貼進網頁；",
     "help.li7": "「兒化音」支援逐字注音（花兒 huā er）與標準拼音（花兒 huār）兩種方式，自動判斷不準時點「兒」字手動指定；勾選「易錯點高亮」會用底紋標出多音字、的地得、一 / 不變調、常見輕聲字，方便快速核對；拼音引擎已內嵌、離線可用，連網時會自動同步上游更新；",
     "help.li8": "關於粵語注音：粵拼等標音方案的標準較為混亂，暫未找到權威的教學標準和可用的開源程式庫，本工具暫時只支援漢語拼音與注音符號；歡迎香港的朋友提供權威參考資料或推薦可用方案；",
-    "help.privacy": "內容安全說明：全部注音轉換都在您自己的瀏覽器裡完成，文章內容不會上傳到任何伺服器，可以放心處理校內稿件。「一 / 不」預設按實際讀音標註變調，如需與教材原調標註一致，可切換為「標原調」。「檢查更新」僅連網取得拼音引擎的新版本，不會上傳文章內容。",
+    "help.privacy": "內容安全說明：全部注音轉換都在您自己的瀏覽器裡完成，文章內容不會上傳到任何伺服器，可以放心處理校內稿件。「一 / 不」預設按語流中的實際讀音標註變調（一個 yí gè），如需與詞典中的本調一致，可切換為「標本調」（一個 yī gè）。「檢查更新」僅連網取得拼音引擎的新版本，不會上傳文章內容。",
     "ft.brand": "漢語拼音注音小助手",
     "ft.tag": "本機執行 · 文章內容不上傳",
     "ft.eng": " · 拼音引擎 pinyin-pro",
@@ -1135,6 +1135,7 @@ var I18N = {
     "ph.lbl": "Phonetics",
     "ph.py": "Pinyin",
     "ph.zy": "Zhuyin",
+    "ph.tongyong": "Tongyong Pinyin",
     "l.zydir": "Zhuyin layout",
     "zydir.aria": "Zhuyin layout",
     "zydir.h": "Horizontal",
@@ -1159,8 +1160,9 @@ var I18N = {
     "rs.hint": "Mandarin readings follow《現代漢語詞典》(data: zh-lx/pinyin-pro); Taiwan readings follow《重編國語辭典修訂本》(data: g0v Moedict).",
     "rs.decompressFail": "This browser can't decompress the Taiwan-pronunciation table (needs recent Chrome / Edge / Firefox / Safari); falling back to Mandarin readings.",
     "ts.aria": "Tone sandhi annotation mode for 一 / 不",
-    "ts.on": "Actual sounds",
-    "ts.off": "Original tones",
+    "ts.on": "Sandhi form",
+    "ts.off": "Citation tone",
+    "ts.hint": "\"Sandhi form\" prints the tone actually spoken in context (一个 yí gè); \"Citation tone\" prints the dictionary tone (一个 yī gè). Both are standard — it is only a choice of which one to print.",
     "l.erhua": "Erhua (r-coloring)",
     "eh.aria": "Erhua annotation mode",
     "eh.char": "Per character",
@@ -1188,7 +1190,7 @@ var I18N = {
     "help.li6": "\"Copy text with phonetics\" offers five formats: rich text (paste into Word), HTML ruby tags, HTML+CSS Zhuyin (web source code matching the preview in horizontal / vertical layout, optional web fonts; in vertical layout with the BpmfIansui font readings are written as IVS selectors), character + phonetic pairs, and phonetics only. Word has limited support for zhuyin tone positioning, so rich-text zhuyin is horizontal with tones appended; use the latter two formats for precise web layout;",
     "help.li7": "\"Erhua\" supports per-character (花儿 huā er) and standard pinyin (花儿 huār) modes — click 「儿」 to override; \"Highlight tricky spots\" shades polyphonic characters, 的地得, 一/不 sandhi and neutral tones for quick checking; the engine is embedded and works offline, and syncs upstream updates when online;",
     "help.li8": "About Cantonese: romanization standards for Cantonese remain fragmented and no authoritative teaching standard or usable open-source library has been found, so this tool supports Hanyu Pinyin and Zhuyin only; suggestions from Hong Kong users are welcome;",
-    "help.privacy": "Privacy: all annotation happens in your own browser; article content is never uploaded to any server, so school materials are safe to process. 一/不 sandhi is annotated with actual sounds by default — switch to \"Original tones\" to match textbook notation. \"Check for updates\" only fetches new engine versions online; article content is never uploaded.",
+    "help.privacy": "Privacy: all annotation happens in your own browser; article content is never uploaded to any server, so school materials are safe to process. 一/不 sandhi is annotated as spoken in context by default — switch to \"Citation tone\" for the dictionary form. \"Check for updates\" only fetches new engine versions online; article content is never uploaded.",
     "ft.brand": "Chinese Pinyin Annotator",
     "ft.tag": "Runs locally · no content uploaded",
     "ft.eng": " · engine: pinyin-pro",
@@ -1369,7 +1371,7 @@ function applyI18n() {
     "高兴得": "gāo xìng de", "走得": "zǒu de", "跑得": "pǎo de",
     "玩得": "wán de", "笑得": "xiào de", "写得": "xiě de", "做得": "zuò de",
     /* 「一会儿」的「会」实读轻声，口语实际读音「一」为 yì（《现汉》主注 yí·huìr 之外又读 yì huǐr）；
-       标原调模式不受影响——引擎 toneSandhi:false 时自动把 custom/词典里的「一 / 不」归回 yī / bù */
+       标本调模式不受影响——引擎 toneSandhi:false 时自动把 custom/词典里的「一 / 不」归回 yī / bù */
     "一会儿": "yì huì er", "不一会儿": "bù yì huì er", "多一会儿": "duō yì huì er"
   };
   try { lib.customPinyin(CUSTOM_DICT); } catch (e) { /* 词典加载失败不影响主流程 */ }
@@ -1572,6 +1574,112 @@ function applyI18n() {
     }
     return '<span class="pazy-i' + ti + '"><span class="pazy-h">' + ch + '</span><span class="pazy-z">' + s + "</span></span>";
   }
+  /* ===== 通用拼音（Tongyong Pinyin）=====
+     规则依据：教育部《中文譯音使用原則》通用拼音方案，与汉语拼音的差异集中在这几处：
+       zh → jh；j / q / x → j / c / s；舌尖元音 i → ih（jhi → jhih）；
+       ㄩ 系写作 yu（jü → jyu、nü → nyu、lü → lyu、jiong → jyong）；
+       -iou / -uei 不缩写（liu → liou、dui → duei）；
+       wen → wun、weng → wong、feng → fong；
+       叹词 hm / hng 归并为 heng。
+     输入是带调拼音音节，输出仍是带调拉丁字母（音标字体与拼音共用），
+     调号按「a > o > e > ê，iu 标 u、ui 标 i，其余标唯一元音」重新落位。 */
+  /* 本块由 check-tongyong.js 抽取做全量对照，不依赖块外变量；
+     改动规则后请跑一次 node check-tongyong.js。 */
+  /* @check-tongyong:begin */
+  var TY_TONE = {
+    a: ["a", "\u0101", "\u00E1", "\u01CE", "\u00E0"],
+    e: ["e", "\u0113", "\u00E9", "\u011B", "\u00E8"],
+    i: ["i", "\u012B", "\u00ED", "\u01D0", "\u00EC"],
+    o: ["o", "\u014D", "\u00F3", "\u01D2", "\u00F2"],
+    u: ["u", "\u016B", "\u00FA", "\u01D4", "\u00F9"],
+    "ü": ["ü", "\u01D6", "\u01D8", "\u01DA", "\u01DC"],
+    "ê": ["ê", "ê\u0304", "\u1EBF", "ê\u030C", "\u1EC1"],
+    m: ["m", "m\u0304", "\u1E3F", "m\u030C", "m\u0300"],
+    n: ["n", "n\u0304", "\u0144", "\u0148", "\u01F9"]
+  };
+  var TY_SIB = { zh: 1, ch: 1, sh: 1, r: 1, z: 1, c: 1, s: 1 };   // 舌尖元音声母
+  var TY_INI_OUT = { zh: "jh", j: "j", q: "c", x: "s" };
+  /* 拼音基础音节（无调）→ 通用拼音拼写 */
+  function tyBaseOf(base) {
+    var s = base.replace(/v/g, "ü").toLowerCase();
+    if (s === "wen") return "wun";
+    if (s === "weng") return "wong";
+    if (s === "feng") return "fong";
+    if (s === "hm" || s === "hng") return "heng";
+    /* 儿化尾 r：去掉 r 转换剩余部分再补回 */
+    if (s.length > 2 && s !== "er" && s.charAt(s.length - 1) === "r") {
+      var stem = tyBaseOf(s.slice(0, -1));
+      return stem ? stem + "r" : null;
+    }
+    var ini = "", rest = s;
+    if (s.slice(0, 2) === "zh" || s.slice(0, 2) === "ch" || s.slice(0, 2) === "sh") {
+      ini = s.slice(0, 2); rest = s.slice(2);
+    } else if ("bpmfdtnlgkhjqxrzcs".indexOf(s.charAt(0)) >= 0) {
+      ini = s.charAt(0); rest = s.slice(1);
+    }
+    if (TY_SIB[ini] && rest === "i") return (TY_INI_OUT[ini] || ini) + "ih";   // 舌尖元音
+    var o = TY_INI_OUT[ini] || ini;
+    if (ini === "j" || ini === "q" || ini === "x") {
+      if (rest === "u") return o + "yu";
+      if (rest === "ue") return o + "yue";
+      if (rest === "uan") return o + "yuan";
+      if (rest === "un") return o + "yun";
+      if (rest === "iong") return o + "yong";
+    }
+    if (ini === "n" || ini === "l") {
+      if (rest === "ü") return o + "yu";
+      if (rest === "üe") return o + "yue";
+      if (rest === "üan") return o + "yuan";
+      if (rest === "ün") return o + "yun";
+    }
+    if (rest === "iu") rest = "iou";
+    else if (rest === "ui") rest = "uei";
+    return o + rest;
+  }
+  /* 调号落位：a > o > e > ê；iu 标 u、ui 标 i；否则标唯一元音 */
+  function tyToneAt(base) {
+    if (base === "m" || base === "n" || base === "ng") return 0;
+    if (base.indexOf("a") >= 0) return base.indexOf("a");
+    if (base.indexOf("o") >= 0) return base.indexOf("o");
+    if (base.indexOf("e") >= 0) return base.indexOf("e");
+    if (base.indexOf("ê") >= 0) return base.indexOf("ê");
+    if (base.indexOf("iu") >= 0) return base.indexOf("iu") + 1;
+    if (base.indexOf("ui") >= 0) return base.indexOf("ui");
+    for (var i = base.length - 1; i >= 0; i--) if ("iuü".indexOf(base.charAt(i)) >= 0) return i;
+    return -1;
+  }
+  /* 带调拼音 → 基础音节 + 调值（1-4；0/5 = 无调号）。
+     用 NFD 拆组合调号：ḿ 这类预组合字与 m̄ / m̀ 这类只能组合书写的音节
+     走同一条路径，不再依赖逐字符查表（多码位键在 charAt 循环里永远匹配不到）。 */
+  var TY_COMBINING = { "\u0304": 1, "\u0301": 2, "\u030C": 3, "\u0300": 4, "\u0307": 5 };
+  function tySplitTone(py) {
+    var tone = 0, base = "";
+    var d = String(py).normalize("NFD");
+    for (var i = 0; i < d.length; i++) {
+      var ch = d.charAt(i);
+      if (TY_COMBINING[ch]) { tone = TY_COMBINING[ch]; continue; }
+      base += ch;
+    }
+    return { base: base.normalize("NFC"), tone: tone };
+  }
+  /* 带调拼音音节 → 通用拼音音节；非标准音节返回 null（调用方回退显示原拼音） */
+  function pyToTongyong(py) {
+    if (!py) return null;
+    var sp = tySplitTone(py);
+    var ty = tyBaseOf(sp.base);
+    if (!ty) return null;
+    if (sp.tone < 2 || sp.tone > 4) return ty;   // 一声 / 轻声不标
+    var idx = tyToneAt(ty);
+    if (idx < 0) return ty;
+    var row = TY_TONE[ty.charAt(idx)];
+    if (!row) return ty;
+    return ty.slice(0, idx) + row[sp.tone] + ty.slice(idx + 1);
+  }
+  function tyText(py) {
+    var r = pyToTongyong(py);
+    return r === null ? py : r;
+  }
+  /* @check-tongyong:end */
   /* ===== 音标方案注册表 =====
      读音层始终以拼音存储，输出层只负责「拼音音节 → 目标拼写」的序列化。
      每个方案提供四个序列化入口与四个能力标志，业务逻辑一律按能力判断，不再比对具体 id：
@@ -1627,6 +1735,27 @@ function applyI18n() {
       return useIvs ? zyIvsHtml(ch, py) : zyWebItemHtml(esc(ch), py);
     }
   });
+
+  registerPhScheme({
+    id: "ty",
+    label: "通用拼音",
+    i18n: "ph.tongyong",
+    labelKind: "py",        // 拉丁字母方案，复用「拼音位置 / 上方 / 右侧」那套文案
+    script: "latin",
+    pyFont: true,
+    wordRuby: true,
+    webFormat: false,
+    text: tyText,
+    rtHtml: tyText,
+    charRuby: function (ch, py) {
+      return '<span class="py-result-item"><ruby><span class="py-chinese-item">' + esc(ch) +
+        '</span><rp>(</rp><rt class="py-pinyin-item">' + esc(tyText(py)) + "</rt><rp>)</rp></ruby></span>";
+    },
+    webItem: null
+  });
+
+  /* 侧栏下拉框的显示顺序（注册顺序不参与排序，便于日后插入新方案） */
+  var PH_ORDER = ["py", "ty", "zy"];
 
   // 变体默认（zhuyin 版注入 __VARIANT.ph = "zy"）；未知 id 一律回落到拼音
   phonetic = (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) ? window.__VARIANT.ph : "py";
@@ -2473,6 +2602,33 @@ function applyI18n() {
     renderView();
   }
 
+  /* ===== 候选读音清洗 =====
+     候选项来自拼音字典（引擎 polyphonic + 项目补表 + 台湾读音 + 助词表），
+     内容一律是拼音，再按当前方案渲染。这里只做两件事，不改读音本身：
+       1) 方案显示不了的读音直接丢掉——注音转换失败会原样回退成拉丁字母，
+          看着就像串了别的方案（例如台湾读音「崖 yái」）；
+       2) 同一方案下显示结果相同的只留一个——通用拼音一声与轻声都不标调，
+          会出现两个一模一样的按钮；
+       3) 当前读音始终保留，并顶替与它重复的那一项。
+     注：ê 系（ê̄ ế ê̌ ề）是《汉语拼音方案》里「欸 / 诶」等叹词的正规读音，
+     属于拼音，必须保留；注音模式下由转换层显示为 ㄝ 系列。 */
+  /* @check-alts:begin */
+  function cleanAlts(list, cur, render, latinScript) {
+    var out = [], pos = {};
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i], isCur = r === cur, shown = render(r);
+      if (!isCur && !latinScript && /[a-z]/i.test(shown)) continue;
+      if (Object.prototype.hasOwnProperty.call(pos, shown)) {
+        if (isCur) out[pos[shown]] = r;
+        continue;
+      }
+      pos[shown] = out.length;
+      out.push(r);
+    }
+    return out;
+  }
+  /* @check-alts:end */
+
   function openPopover(rubySpan) {
     // 分页预览只渲染当前页，无法再按序号与全文读音表对位，改用构建时写入的 data-ci
     var idx = parseInt(rubySpan.getAttribute("data-ci"), 10);
@@ -2495,7 +2651,7 @@ function applyI18n() {
       extra.forEach(function (r) { if (alts.indexOf(r) === -1) alts.push(r); });
     }
     if (reading && alts.indexOf(reading) === -1) alts.unshift(reading);
-    // 「一 / 不」：引擎多音字数据只登记原调（yī / bù），补全变调候选供手动指定
+    // 「一 / 不」：引擎多音字数据只登记本调（yī / bù），补全变调候选供手动指定
     if (hanChar === "一") {
       ["yī", "yí", "yì"].forEach(function (r) { if (alts.indexOf(r) === -1) alts.push(r); });
     } else if (hanChar === "不") {
@@ -2504,6 +2660,8 @@ function applyI18n() {
     if (twRd && alts.indexOf(twRd) === -1) alts.push(twRd); // 台湾读音也进候选
     var particle = PARTICLE[hanChar];
     if (particle && alts.indexOf(particle) === -1) alts.push(particle);
+    // 过滤掉当前方案显示不了的读音、教材不用的边缘读音与重复项
+    alts = cleanAlts(alts, reading, phText, getPhScheme().script === "latin");
     if (!alts.length) alts = [reading || "—"];
     // 儿字：额外提供儿化 / 非儿化强制选项
     if (hanChar === "儿" && idx > 0 && HAN_RE.test(text[idx - 1])) {
@@ -3079,10 +3237,23 @@ function applyI18n() {
     document.body.dataset.ph = sch.id;   // 供 CSS / 调试按方案挂样式
     return sch;
   }
-  function syncPhButtons(m) {
+  /* 音标方案下拉框：选项按 PH_ORDER 从注册表生成，文案走 i18n（ph.py / ph.tongyong / ph.zy） */
+  function renderPhOptions() {
+    var sel = $("ph-scheme");
+    if (!sel) return;
+    var html = "";
+    for (var i = 0; i < PH_ORDER.length; i++) {
+      var sch = PH_SCHEMES[PH_ORDER[i]];
+      if (!sch) continue;
+      html += '<option value="' + sch.id + '">' + esc(i18nT(sch.i18n || "ph." + sch.id, sch.label)) + "</option>";
+    }
+    sel.innerHTML = html;
+    sel.value = phonetic;
+  }
+  function syncPhScheme(m) {
     var sch = setPhonetic(m);
-    $("ph-py").className = sch.id === "py" ? "on" : "";
-    $("ph-zy").className = sch.id === "zy" ? "on" : "";
+    var sel = $("ph-scheme");
+    if (sel) sel.value = sch.id;
     applyShowpyLabels();
     syncZywebFmt();
     autoSwitchPyFont(sch.id);
@@ -3126,14 +3297,9 @@ function applyI18n() {
     if (bv) bv.textContent = dm[2];
     if (dseg) dseg.setAttribute("aria-label", dm[0]);
   }
-  $("ph-py").addEventListener("click", function () {
-    if (getPhScheme().id === "py") return;
-    syncPhButtons("py");
-    renderView();
-  });
-  $("ph-zy").addEventListener("click", function () {
-    if (getPhScheme().id === "zy") return;
-    syncPhButtons("zy");
+  $("ph-scheme").addEventListener("change", function () {
+    if (this.value === phonetic) return;
+    syncPhScheme(this.value);
     renderView();
   });
   // 标注方向：横排（拼音=上方，注音=两岸横排通行）/ 直排（注音=台湾直式教科书风格、
@@ -3197,7 +3363,7 @@ function applyI18n() {
     $("print-footer").checked = true;
     document.body.classList.remove("no-print-footer");
     // 音标方案：恢复拼音（标注方向一并恢复出厂默认的横排 / 上方）
-    syncPhButtons("py");
+    syncPhScheme("py");
     setZyDir("h");
     // 读音标准：恢复大陆读音
     setTwStd(false);
@@ -3310,8 +3476,8 @@ function applyI18n() {
       if (SEG_DICT_B64 || saved.seg === "none") setSegScheme(saved.seg);
     }
     // 音标方案（拼音 / 注音 / 已注册的其他方案）
-    if (saved.ph && PH_SCHEMES[saved.ph]) syncPhButtons(saved.ph);
-    else if (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) syncPhButtons(window.__VARIANT.ph);  // zhuyin 版默认注音
+    if (saved.ph && PH_SCHEMES[saved.ph]) syncPhScheme(saved.ph);
+    else if (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) syncPhScheme(window.__VARIANT.ph);  // zhuyin 版默认注音
     // 标注方向（横排 / 直排，两种音标模式共用）
     if (saved.zydir === "h" || saved.zydir === "v") setZyDir(saved.zydir);
     // 读音标准（台湾读音差异表为懒加载，恢复后异步重渲染）
@@ -3586,9 +3752,9 @@ function applyI18n() {
           }
         } else {
           for (i3 = 0; i3 < tk2.length; i3++) {
-            wInner += '<span class="py-result-item"><ruby><span class="py-chinese-item">' + esc(tk2[i3]) + '</span><rp>(</rp><rt class="py-pinyin-item">' + esc(rsAll[i3]) + '</rt><rp>)</rp></ruby></span>';
+            wInner += sch.charRuby(tk2[i3], rsAll[i3]);
           }
-          rubyLine += "<ruby>" + esc(tk2) + "<rt>" + rsAll.map(esc).join(" ").trim() + "</rt></ruby>";
+          rubyLine += "<ruby>" + esc(tk2) + "<rt>" + rsAll.map(function (r) { return esc(sch.text(r)); }).join(" ").trim() + "</rt></ruby>";
           webInner += esc(tk2);   // HTML+CSS 注音仅注音类方案提供；其他方案按纯文本拼接
         }
         for (i3 = 0; i3 < tk2.length; i3++) pairLine += tk2[i3] + "「" + plainSyl[i3] + "」";
@@ -3709,13 +3875,15 @@ function applyI18n() {
   var SAMPLE_TW = "小螞蟻搬家（示例文章）\n天要下雨了，小螞蟻們排著長長的隊伍往高處搬家。\n一隻小螞蟻揹著一粒大豆子，走得慢極了。小螞蟻可兒說：「大家不要著急，一步一步走，就一定能到家。」\n雨點落下來的時候，牠們正好鑽進了新家。可兒的媽媽端出一小盤點心，讓大家歇一會兒，小螞蟻們高興地喊：「我們成功啦」";
   // 示例文章随界面语言：繁体界面填繁体版，简体 / 英文界面填简体版
   function sampleForLang() { return (window.__LANG === "tw") ? SAMPLE_TW : SAMPLE_TEXT; }
+  // 音标方案下拉框：先按注册表生成选项，后面恢复保存样式时才能正确选中
+  renderPhOptions();
   // 「保存样式」的样式在首次渲染前应用
   applySavedStyle();
   // 变体默认态（zhuyin 版）：无保存设置时同步注音按钮/正文类，并触发台湾读音差异表懒加载
   var __hasSavedStyle = false;
   try { __hasSavedStyle = !!localStorage.getItem(STYLE_KEY); } catch (eVStyle) { __hasSavedStyle = false; }
   if (!__hasSavedStyle) {
-    syncPhButtons(phonetic);
+    syncPhScheme(phonetic);
     if (twStd) setTwStd(true);
   }
   renderView();
@@ -3725,7 +3893,7 @@ function applyI18n() {
     current: function () { return phonetic; },
     set: function (id) {
       if (!PH_SCHEMES[id]) return false;
-      syncPhButtons(id);
+      syncPhScheme(id);
       renderView();
       return true;
     }
@@ -3758,6 +3926,7 @@ function applyI18n() {
           window.__LANG = L;
           try { localStorage.setItem("py-lang", L); } catch (eLang) {}
           applyI18n();                       // 静态节点 + title + html lang
+          renderPhOptions();                 // 音标方案下拉：选项文案随语言刷新
           if (typeof applyShowpyLabels === "function") applyShowpyLabels();  // 音标/注音显示标签随模式+语言刷新
           syncLangBtns();
           renderView();                      // 字数 / 页码 / 空态提示等动态文案

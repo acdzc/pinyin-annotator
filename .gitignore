@@ -1,4 +1,5 @@
 # 构建中间产物 / 本地调试文件
+.ty-biao.tsv
 seg-dict/_decoded.json
 .pyp/
 .prcheck/
