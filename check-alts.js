@@ -3,8 +3,9 @@
  * ---------------------------------------------------------------------------
  * 逐个扫描 CJK 基本区的多音字，把引擎的候选读音过一遍 template.html 里的
  * cleanAlts()，检查四件事：
- *   1. 方案显示不了的读音没有被留下（注音模式下不应出现拉丁字母）；
- *   2. 教材不用的边缘读音（ê 系）没有进候选；
+ *   1. 注音模式下每条读音都能转成注音符号（转换失败会回退成拉丁字母，
+ *      看着就像串了别的方案）；
+ *   2. 候选里不含当前方案写不出的字符；
  *   3. 同一方案下没有显示结果重复的选项；
  *   4. 清洗后候选非空（空了会退化成「—」）。
  *
@@ -83,7 +84,13 @@ for (let cp = 0x4e00; cp <= 0x9fa5; cp++) {
       if (seen.has(shown)) issues.push(`${ch} [${sc.id}] 显示重复：${shown}`);
       seen.add(shown);
       if (!sc.latin && /[a-z]/i.test(shown)) issues.push(`${ch} [${sc.id}] 残留拉丁字母：${r} → ${shown}`);
-      if (r.normalize("NFD").indexOf("e\u0302") >= 0) issues.push(`${ch} [${sc.id}] ê 系未过滤：${r}`);
+    }
+    // 注音：所有候选读音都要能转，不能因为转不出来被清洗掉
+    if (!sc.latin) {
+      for (const r of alts) {
+        const shown = sc.render(r);
+        if (/[a-z]/i.test(shown)) issues.push(`${ch} [${sc.id}] 读音转不出注音：${r}`);
+      }
     }
   }
 }
