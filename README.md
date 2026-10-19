@@ -136,6 +136,7 @@ node build.js
 - **词典再生成**：`seg-dict/` 内包含 `build-complete.js`、`build-tw-diff.js`、`gen-bpmf-ivs.py`，仅在需要更新上游词典 / 萌典差异 / 注音读音表数据时使用，日常构建无需运行。
 - **多音补表自检**：`template.html` 里的 `POLY_EXTRA` 收录引擎缺失的读音（如 骑 jì、偕 jiē）。升级引擎后运行 `node check-poly-extra.js`，会列出「上游已收录（可删除）」「上游仍缺失」两类条目，避免与引擎重复或冲突。
 - **通用拼音对照**：`node check-tongyong.js` 用 kfcd/pinyin 的 2095 条音节逐条核对拼写与调值。先在仓库根目录放一份对照表：`gh api repos/kfcd/pinyin/contents/pinyinbiao -H "Accept: application/vnd.github.raw" > .ty-biao.tsv`（该文件不入库）。
+- **候选读音自检**：`node check-alts.js` 扫描全部多音字，检查三种方案下的候选是否混入方案外的字符（如注音模式里出现拉丁字母）、教材不用的边缘读音（ê 系）或显示重复的选项。
 - **内嵌字体**：`fonts/build-andika.py <Andika-Regular.ttf>` 重建 Andika 子集，`fonts/check-coverage.py` 检查两个内嵌字体是否覆盖所有音标方案用到的字符（含组合调号与 unicode-range）。两者需要 `pip install fonttools brotli`，仅改字体时使用。
 
 ## 参与贡献

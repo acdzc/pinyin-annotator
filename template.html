@@ -2602,6 +2602,41 @@ function applyI18n() {
     renderView();
   }
 
+  /* ===== 候选读音清洗 =====
+     候选项来自拼音字典（引擎 polyphonic + 项目补表 + 台湾读音 + 助词表），
+     内容一律是拼音，再按当前方案渲染。渲染前后各做一道过滤：
+       1) 方案显示不了的读音直接丢掉——注音转换失败会原样回退成拉丁字母，
+          看着就像串了别的方案；
+       2) 教材不用的边缘读音不进候选：ê 系（ê̄ ế ê̌ ề）只用于「欸 / 诶」
+          这类叹词，小学教材不教，注音里又写作 ㄝ，容易被当成串方案；
+       3) 同一方案下显示结果相同的只留一个——通用拼音一声与轻声都不标调，
+          会出现两个一模一样的按钮；
+       4) 当前读音始终保留，并顶替与它重复的那一项。 */
+  /* @check-alts:begin */
+  var ALT_DROP_SYL = { "ê": 1 };   // 键：去调号后的基础音节
+  function altBase(py) {
+    // 只去调号，保留 ê 的抑扬符 U+0302，才能认出 ê 系
+    return String(py).normalize("NFD").replace(/[\u0300\u0301\u0304\u0306\u0307\u030C]/g, "").normalize("NFC");
+  }
+  function cleanAlts(list, cur, render, latinScript) {
+    var out = [], pos = {};
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i], isCur = r === cur, shown = render(r);
+      if (!isCur) {
+        if (ALT_DROP_SYL[altBase(r)]) continue;
+        if (!latinScript && /[a-z]/i.test(shown)) continue;
+      }
+      if (Object.prototype.hasOwnProperty.call(pos, shown)) {
+        if (isCur) out[pos[shown]] = r;
+        continue;
+      }
+      pos[shown] = out.length;
+      out.push(r);
+    }
+    return out;
+  }
+  /* @check-alts:end */
+
   function openPopover(rubySpan) {
     // 分页预览只渲染当前页，无法再按序号与全文读音表对位，改用构建时写入的 data-ci
     var idx = parseInt(rubySpan.getAttribute("data-ci"), 10);
@@ -2633,6 +2668,8 @@ function applyI18n() {
     if (twRd && alts.indexOf(twRd) === -1) alts.push(twRd); // 台湾读音也进候选
     var particle = PARTICLE[hanChar];
     if (particle && alts.indexOf(particle) === -1) alts.push(particle);
+    // 过滤掉当前方案显示不了的读音、教材不用的边缘读音与重复项
+    alts = cleanAlts(alts, reading, phText, getPhScheme().script === "latin");
     if (!alts.length) alts = [reading || "—"];
     // 儿字：额外提供儿化 / 非儿化强制选项
     if (hanChar === "儿" && idx > 0 && HAN_RE.test(text[idx - 1])) {

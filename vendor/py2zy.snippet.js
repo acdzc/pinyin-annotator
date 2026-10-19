@@ -8,23 +8,25 @@ var ZY_FIN = {
   "i":"ㄧ","u":"ㄨ","ü":"ㄩ","ong":"ㄨㄥ",
   "ia":"ㄧㄚ","io":"ㄧㄛ","ie":"ㄧㄝ","iao":"ㄧㄠ","iou":"ㄧㄡ","iu":"ㄧㄡ","ian":"ㄧㄢ","in":"ㄧㄣ","iang":"ㄧㄤ","ing":"ㄧㄥ","iong":"ㄩㄥ",
   "ua":"ㄨㄚ","uo":"ㄨㄛ","uai":"ㄨㄞ","uei":"ㄨㄟ","ui":"ㄨㄟ","uan":"ㄨㄢ","uen":"ㄨㄣ","un":"ㄨㄣ","uang":"ㄨㄤ","ueng":"ㄨㄥ",
-  "üe":"ㄩㄝ","üan":"ㄩㄢ","ün":"ㄩㄣ"
+  "üe":"ㄩㄝ","üan":"ㄩㄢ","ün":"ㄩㄣ",
+  /* ㄧㄞ：台湾读「崖 / 厓 / 啀」为 yái，汉语拼音不作标准音节，注音有对应韵符 */
+  "iai":"ㄧㄞ"
 };
 var ZY_SPECIAL = { "m":"ㄇ","n":"ㄣ","ng":"ㄥ","hm":"ㄏㄇ","hng":"ㄏㄥ" };
-/* 带调字母 → 基础字母 + 声调(1-5)，返回 null 表示无调号（轻声） */
-var ZY_TONE_CHARS = (function () {
-  var m = {};
-  var pairs = [ "aāáǎà", "eēéěè", "iīíǐì", "oōóǒò", "uūúǔù", "üǖǘǚǜ" ];
-  for (var i = 0; i < pairs.length; i++) {
-    var base = pairs[i][0];
-    for (var j = 1; j < pairs[i].length; j++) m[pairs[i][j]] = [base, j];
+/* 带调拼音 → 基础音节 + 调值(1-5)。用 NFD 拆组合调号：
+   ê̄ / m̄ / m̀ 这类只能组合书写的音节也能转写。旧写法按码位查表，
+   多码位键（如 "m̀"）在 charAt 循环里永远匹配不到，会退化成原样输出。 */
+var ZY_COMBINING = { "\u0304": 1, "\u0301": 2, "\u030C": 3, "\u0300": 4, "\u0307": 5 };
+function zySplitTone(py) {
+  var tone = 5, base = "";
+  var d = String(py).normalize("NFD");
+  for (var i = 0; i < d.length; i++) {
+    var ch = d.charAt(i);
+    if (ZY_COMBINING[ch]) { tone = ZY_COMBINING[ch]; continue; }
+    base += ch;
   }
-  m["Ế"] = ["ê", 2]; m["Ề"] = ["ê", 4]; m["Ể"] = ["ê", 3]; m["Ễ"] = ["ê", 5];
-  m["ế"] = ["ê", 2]; m["ề"] = ["ê", 4]; m["ể"] = ["ê", 3]; m["ễ"] = ["ê", 5];
-  m["ḿ"] = ["m", 2]; m["m̀"] = ["m", 4];         /* 呣 */
-  m["ń"] = ["n", 2]; m["ň"] = ["n", 3]; m["ǹ"] = ["n", 4];  /* 嗯 */
-  return m;
-})();
+  return { base: base.normalize("NFC"), tone: tone };
+}
 /* 基础音节（无调号）→ 注音符号串（不含调号） */
 function zyBase(base) {
   if (ZY_SPECIAL[base] != null) return ZY_SPECIAL[base];
@@ -65,14 +67,9 @@ function zyBase(base) {
 /* 带调拼音音节 → { syms, tone } 或 null */
 function pyToZhuyin(py) {
   if (!py) return null;
-  var base = "", tone = 5;
-  for (var i = 0; i < py.length; i++) {
-    var c = py.charAt(i), t = ZY_TONE_CHARS[c];
-    if (t) { base += t[0]; tone = t[1]; } else base += c;
-  }
-  base = base.replace(/v/g, "ü").toLowerCase();
-  var syms = zyBase(base);
+  var sp = zySplitTone(py);
+  var syms = zyBase(sp.base.replace(/v/g, "ü").toLowerCase());
   if (!syms) return null;
-  return { syms: syms, tone: tone };
+  return { syms: syms, tone: sp.tone };
 }
 if (typeof module !== "undefined") module.exports = { pyToZhuyin: pyToZhuyin, zyBase: zyBase };
