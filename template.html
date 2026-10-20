@@ -1920,7 +1920,11 @@ function applyI18n() {
     k = b.indexOf("u"); if (k >= 0) return k;
     k = b.indexOf("i"); if (k >= 0) return k;
     if (/ng$/.test(b)) return b.length - 2;   // 鼻音 ng / hng：标在 n 上
-    return b.length - 1;                      // 空韵的 r / z，鼻音 m / n
+    /* 空韵没有元音：标在 z / r 上。儿化会再缀一个 r（詞兒 tszr），
+       所以要取空韵本身的 z 或前一个 r，而不是末尾那个 r。 */
+    k = b.lastIndexOf("z"); if (k >= 0) return k;
+    k = b.indexOf("r"); if (k >= 0) return k;
+    return b.length - 1;                      // 鼻音 m / n
   }
   function mps2Text(py) {
     if (!py) return null;
