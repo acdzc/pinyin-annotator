@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-/* 音标转写全量对照检查：通用拼音 / 耶鲁拼音 / 威妥玛（严式、简式）
+/* 音标转写全量对照检查：通用拼音 / 耶鲁拼音 / 威妥玛（严式、简式）/ 注音二式
  * ---------------------------------------------------------------------------
  * 用 kfcd/pinyin 的 pinyinbiao（CC BY 3.0，2095 个音节）逐条核对
- * template.html 里的四套转写规则，拼写与调值都要一致。
+ * template.html 里的五套转写规则，拼写与调值都要一致。
  *
  * 用法：
  *   node check-translit.js [对照表路径]
@@ -11,10 +11,11 @@
  *        -H "Accept: application/vnd.github.raw" > .ty-biao.tsv
  *
  * 比对口径
- *   - 调号：对照表里通用拼音、耶鲁用符号，威妥玛用上标数字；项目输出形态相同，
+ *   - 调号：对照表里通用拼音、耶鲁用符号，威妥玛、注音二式用数字；项目输出形态相同，
  *     但耶鲁的空韵（jr/chr/shr/r/dz/tsz/sz）用空格调号、轻声用间隔号，
  *     所以两边都先拆成「基础音节 + 调值」再比。
- *   - 轻声与一声：通用拼音、耶鲁都不标调，比较时归为同一档。
+ *   - 轻声与一声：通用拼音、耶鲁都不标调，比较时归为同一档；
+ *     注音二式一声标 ¯、轻声不标，两者要分开比。
  *   - hm / hng：对照表的拼音列不带调号（只有编号列有），调值无从对应，只比拼写。
  *   - 已知的对照表偏差（脚本单独计数，不算失败）：
  *       Yale  -un 韵：表里 dun/kun/hun… 写 -wen、gun/lun/run/shun 写 -wun，自身不统一；
@@ -44,8 +45,8 @@ const block = extract(template, "/* @check-translit:begin", "/* @check-translit:
 
 const sandbox = { console: console };
 vm.createContext(sandbox);
-vm.runInContext(block + "\nthis.api = { tyText, yaleText, wgText, wgsText, wgsOpts, phSplitTone };", sandbox);
-const { tyText, yaleText, wgText, wgsText, wgsOpts, phSplitTone } = sandbox.api;
+vm.runInContext(block + "\nthis.api = { tyText, yaleText, wgText, wgsText, mps2Text, wgsOpts, phSplitTone };", sandbox);
+const { tyText, yaleText, wgText, wgsText, mps2Text, wgsOpts, phSplitTone } = sandbox.api;
 
 /* ---------- 2. 调号解析 ---------- */
 const SPACING = { "\u02C9": 1, "\u02CA": 2, "\u02C7": 3, "\u02CB": 4, "\u02D9": 5, "\u00B7": 5,
@@ -75,6 +76,15 @@ function parseWg(s) {
   return { base: base, tone: tone };
 }
 
+/* 注音二式对照列：音节末尾缀 1-5 的阿拉伯数字 */
+function parseNum(s) {
+  const str = String(s);
+  const m = /([1-5])$/.exec(str);
+  return m ? { base: str.slice(0, -1), tone: Number(m[1]) } : { base: str, tone: 0 };
+}
+/* 注音二式：一声标 ¯、轻声不标，两者必须分开，只把轻声归 0 */
+const normTone = (t) => (t === 5 ? 0 : t);
+
 /* 对照表拼音列偶尔丢 ü（lüan 写成 luan），用编号列补；并补回调号 */
 const PY_TONE = {
   a: ["a", "ā", "á", "ǎ", "à"], e: ["e", "ē", "é", "ě", "è"], i: ["i", "ī", "í", "ǐ", "ì"],
@@ -101,7 +111,7 @@ if (!fs.existsSync(TSV)) {
 }
 const rows = fs.readFileSync(TSV, "utf8").split(/\r?\n/).filter(Boolean).map((l) => l.split("\t"));
 
-const bad = { ty: [], yale: [], wg: [] };
+const bad = { ty: [], yale: [], wg: [], mps2: [] };
 const known = { yale: [], wg: [] };
 let checked = 0, nasal = 0, eRows = 0;
 
@@ -154,6 +164,15 @@ for (const r of rows) {
       (KNOWN_WG.test(numBase) ? known.wg : bad.wg).push(item);
     }
   }
+
+  /* 注音二式（对照表用数字调） */
+  {
+    const mine = parseSyllable(mps2Text(input));
+    const ref = parseNum(r[4] || "");
+    if (mine.base !== ref.base || (!isNasal && normTone(mine.tone) !== normTone(ref.tone))) {
+      bad.mps2.push([num, input, mps2Text(input), r[4]]);
+    }
+  }
 }
 
 /* ---------- 4. 简式：严式去掉送气符 ---------- */
@@ -192,12 +211,14 @@ report("通用拼音", bad.ty);
 report("耶鲁拼音", bad.yale, known.yale);
 report("威妥玛（严式）", bad.wg, known.wg);
 report("威妥玛（简式）", wgsBad);
+report("注音二式", bad.mps2);
 
 if (known.yale.length) console.log("  耶鲁已知偏差：%d 条 -un 韵，对照表写法不统一，按韵母表统一作 -wun", known.yale.length);
 if (known.wg.length) console.log("  威妥玛已知偏差：%d 条 yan，标准作 yen", known.wg.length);
 console.log("  简式开关自检：%s / ü→u：%s / 去调：%s", uSample, uOut, noTone);
 
 const ok = !bad.ty.length && !bad.yale.length && !bad.wg.length && !wgsBad.length &&
+  !bad.mps2.length &&
   uSample === "chün¹" && uOut === "chun¹" && noTone === "chün";
 console.log("\n" + (ok ? "全部一致 ✓" : "存在不一致 ✗"));
 process.exit(ok ? 0 : 1);
