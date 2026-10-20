@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* 候选读音自检：确认三种音标方案下的候选列表都干净。
+/* 候选读音自检：确认七种音标方案下的候选列表都干净。
  * ---------------------------------------------------------------------------
  * 逐个扫描 CJK 基本区的多音字，把引擎的候选读音过一遍 template.html 里的
  * cleanAlts()，检查四件事：
@@ -43,7 +43,7 @@ const py2zy = fs.readFileSync(path.join(ROOT, "vendor", "py2zy.snippet.js"), "ut
 
 const sandbox = { console: console };
 vm.createContext(sandbox);
-vm.runInContext(py2zy + "\n" + tyBlock + "\n" + altBlock + "\nthis.tyText = tyText; this.yaleText = yaleText; this.wgText = wgText; this.wgsText = wgsText; this.cleanAlts = cleanAlts;", sandbox);
+vm.runInContext(py2zy + "\n" + tyBlock + "\n" + altBlock + "\nthis.tyText = tyText; this.yaleText = yaleText; this.wgText = wgText; this.wgsText = wgsText; this.mps2Text = mps2Text; this.cleanAlts = cleanAlts;", sandbox);
 
 /* 与 template.html 的 zyText 保持一致的注音渲染（仅用于比对显示结果） */
 function zyText(py) {
@@ -59,6 +59,7 @@ const SCHEMES = [
   { id: "yale", render: (s) => sandbox.yaleText(s), latin: true },
   { id: "wg", render: (s) => sandbox.wgText(s), latin: true },
   { id: "wgs", render: (s) => sandbox.wgsText(s), latin: true },
+  { id: "mps2", render: (s) => sandbox.mps2Text(s), latin: true },
   { id: "zy", render: zyText, latin: false }
 ];
 

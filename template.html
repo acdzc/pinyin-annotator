@@ -925,6 +925,7 @@ var I18N = {
     "ph.yale": "耶魯拼音",
     "ph.wg": "威妥瑪（嚴式）",
     "ph.wgs": "威妥瑪（簡式）",
+    "ph.mps2": "注音二式",
     "wgs.tone.lbl": "簡式聲調",
     "wgs.tone.num": "數字",
     "wgs.tone.none": "不標",
@@ -1160,6 +1161,7 @@ var I18N = {
     "ph.yale": "Yale",
     "ph.wg": "Wade-Giles (strict)",
     "ph.wgs": "Wade-Giles (plain)",
+    "ph.mps2": "MPS2",
     "wgs.tone.lbl": "Plain tones",
     "wgs.tone.num": "Numbers",
     "wgs.tone.none": "None",
@@ -1854,6 +1856,87 @@ function applyI18n() {
     return b + (wgsOpts.tone ? WG_SUP[p.tone] : "");
   }
 
+  /* ===== 注音二式（MPS2，國語注音符號第二式）=====
+     规则依据：教育部 1986-01-28 公布的《國語注音符號第二式》。
+     声母：b/p/m/f、d/t/n/l、g/k/h 同拼音；ㄐ/ㄑ/ㄒ → j/ch/sh（与翘舌同形，
+           靠后面有没有 i 区分）；ㄓ/ㄔ/ㄕ/ㄖ → j/ch/sh/r；ㄗ/ㄘ/ㄙ → tz/ts/s；
+     空韵（ㄭ）：翘舌后作 r（jr / chr / shr / r），舌齿后作 z（tz / tsz / sz，
+           tz 本身已含 z，不再补一个 z：资 tz 而非 tzz）；
+     韵母：ao → au、-ong → -ung、-iong → -iung；ü 系作 iu（ju → jiu、nü → niu）；
+           üe / üan / ün → iue / iuan / iun；iu / uei / uen 一律全拼
+           （liu → liou、dui → duei、lun → luen），不像拼音那样缩写；
+           ㄝ 单用作 ê，与 i / ü 拼合作 e（ie / iue）；
+           零声母：i 系改 y（yi / ya / yau / ye / you）、u 系改 w（wu / wei / wen）、
+           ü 系作 yu（yu / yue / yuan / yun / yung）；
+           儿化直接在韵母后加 r（huār → huar），不加 er。
+     声调：沿用注音一式的调号（¯ ´ ˇ `），标在主要元音上，优先级 a > o > e > ê > u > i；
+           空韵没有元音，标在末尾的 r / z 上；鼻音叹词标在 m / n 上；轻声不加调号。 */
+  var MPS2_INI = { b: "b", p: "p", m: "m", f: "f", d: "d", t: "t", n: "n", l: "l",
+    g: "g", k: "k", h: "h", j: "j", q: "ch", x: "sh", zh: "j", ch: "ch",
+    sh: "sh", r: "r", z: "tz", c: "ts", s: "s" };
+  /* 整音节特例：空韵与叹词，不按声母 + 韵母拆 */
+  var MPS2_SYL = { zhi: "jr", chi: "chr", shi: "shr", ri: "r", zi: "tz", ci: "tsz",
+    si: "sz", hm: "hm", hng: "hng", m: "m", n: "n", ng: "ng" };
+  var MPS2_ZERO = { a: "a", ai: "ai", an: "an", ang: "ang", ao: "au", e: "e", ei: "ei",
+    en: "en", eng: "eng", er: "er", o: "o", ou: "ou",
+    yi: "yi", ya: "ya", yao: "yau", ye: "ye", you: "you", yan: "yan", yin: "yin",
+    yang: "yang", ying: "ying", yong: "yung", yo: "yo", yu: "yu", yue: "yue",
+    yuan: "yuan", yun: "yun", yai: "yai",
+    wu: "wu", wa: "wa", wo: "wo", wai: "wai", wei: "wei", wan: "wan", wen: "wen",
+    wang: "wang", weng: "weng" };
+  var MPS2_FIN = { a: "a", o: "o", e: "e", ai: "ai", ei: "ei", ao: "au", ou: "ou",
+    an: "an", en: "en", ang: "ang", eng: "eng", er: "er",
+    i: "i", ia: "ia", ie: "ie", iao: "iau", iu: "iou", ian: "ian", in: "in",
+    iang: "iang", ing: "ing", iong: "iung",
+    u: "u", ua: "ua", uo: "uo", uai: "uai", ui: "uei", un: "uen", uan: "uan",
+    uang: "uang", ong: "ung",
+    "ü": "iu", "üe": "iue", "üan": "iuan", "ün": "iun",
+    m: "m", n: "n", ng: "ng", hm: "hm", hng: "hng", "ê": "ê" };
+  function mps2BaseOf(base) {
+    var s = base.replace(/v/g, "ü").toLowerCase();
+    if (MPS2_ZERO[s]) return MPS2_ZERO[s];
+    if (MPS2_SYL[s]) return MPS2_SYL[s];
+    /* 儿化尾 r：去掉 r 转换词干再补回（huār → huar） */
+    if (s.length > 2 && s !== "er" && s.charAt(s.length - 1) === "r") {
+      var stem = mps2BaseOf(s.slice(0, -1));
+      return stem ? stem + "r" : null;
+    }
+    var ini = "", rest = s;
+    if (s.slice(0, 2) === "zh" || s.slice(0, 2) === "ch" || s.slice(0, 2) === "sh") {
+      ini = s.slice(0, 2); rest = s.slice(2);
+    } else if (MPS2_INI[s.charAt(0)]) {
+      ini = s.charAt(0); rest = s.slice(1);
+    }
+    if (rest.charAt(0) === "u" && (ini === "j" || ini === "q" || ini === "x")) rest = "ü" + rest.slice(1);
+    var fin = MPS2_FIN[rest];
+    if (!fin) return null;
+    return ini ? MPS2_INI[ini] + fin : fin;
+  }
+  /* 调号：¯ ´ ˇ ` （阴平到去声），标在主要元音上 */
+  var MPS2_MARK = ["", "\u0304", "\u0301", "\u030C", "\u0300"];
+  function mps2MarkAt(b) {
+    var order = "aoeê", k, i;
+    for (i = 0; i < order.length; i++) { k = b.indexOf(order.charAt(i)); if (k >= 0) return k; }
+    k = b.indexOf("u"); if (k >= 0) return k;
+    k = b.indexOf("i"); if (k >= 0) return k;
+    if (/ng$/.test(b)) return b.length - 2;   // 鼻音 ng / hng：标在 n 上
+    /* 空韵没有元音：标在 z / r 上。儿化会再缀一个 r（詞兒 tszr），
+       所以要取空韵本身的 z 或前一个 r，而不是末尾那个 r。 */
+    k = b.lastIndexOf("z"); if (k >= 0) return k;
+    k = b.indexOf("r"); if (k >= 0) return k;
+    return b.length - 1;                      // 鼻音 m / n
+  }
+  function mps2Text(py) {
+    if (!py) return null;
+    var sp = phSplitTone(py);
+    var b = mps2BaseOf(sp.base);
+    if (b === null) return py;
+    if (sp.tone < 1 || sp.tone > 4) return b;   // 轻声不加调号
+    var idx = mps2MarkAt(b);
+    if (idx < 0) return b;
+    return (b.slice(0, idx + 1) + MPS2_MARK[sp.tone] + b.slice(idx + 1)).normalize("NFC");
+  }
+
   /* @check-translit:end */
   /* ===== 音标方案注册表 =====
      读音层始终以拼音存储，输出层只负责「拼音音节 → 目标拼写」的序列化。
@@ -1978,8 +2061,23 @@ function applyI18n() {
     webItem: null
   });
 
+  registerPhScheme({
+    id: "mps2",
+    label: "注音二式",
+    i18n: "ph.mps2",
+    labelKind: "py",
+    script: "latin",
+    pyFont: true,
+    wordRuby: true,
+    webFormat: false,
+    text: mps2Text,
+    rtHtml: mps2Text,
+    charRuby: latinRuby(mps2Text),
+    webItem: null
+  });
+
   /* 侧栏下拉框的显示顺序（注册顺序不参与排序，便于日后插入新方案） */
-  var PH_ORDER = ["py", "ty", "yale", "wg", "wgs", "zy"];
+  var PH_ORDER = ["py", "ty", "yale", "wg", "wgs", "zy", "mps2"];
 
   // 变体默认（zhuyin 版注入 __VARIANT.ph = "zy"）；未知 id 一律回落到拼音
   phonetic = (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) ? window.__VARIANT.ph : "py";
@@ -3905,7 +4003,7 @@ function applyI18n() {
   // 拼音音节之后的收尾字符是否为字母（用于决定要不要在下一个词组拼音前补空格）
   /* 上一个音节末尾是否仍是音标（决定词组间要不要补空格）：
      拼音字母 + 调号字母 + 耶鲁的空格调号 ¯ ´ ˇ ` ˙ · + 威妥玛的上标数字 ¹²³⁴⁵ + 注音符号 */
-  var PY_LAST_RE = /[A-Za-züÜāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜêẑńňǹɡ\u02CA\u02C7\u02CB\u02D9\u00AF\u00B4`\u00B7\u00B9\u00B2\u00B3\u2074\u2075\u3105-\u312F]/;
+  var PY_LAST_RE = /[A-Za-züÜāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜêẑńňǹɡ\u02CA\u02C7\u02CB\u02D9\u00AF\u00B4`\u00B7\u00B9\u00B2\u00B3\u2074\u2075\u0300-\u0304\u0307\u030C\u3105-\u312F]/;
   /* 「HTML+CSS 注音」格式引用的注音样式表地址（zhuyin.css 与四个 HTML 同目录部署；
      如站点域名或路径不同，改这里即可） */
   var ZY_CSS_URL = "https://pinyin-annotator.tjsky.net/zhuyin.css";
