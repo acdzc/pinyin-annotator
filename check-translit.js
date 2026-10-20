@@ -45,8 +45,8 @@ const block = extract(template, "/* @check-translit:begin", "/* @check-translit:
 
 const sandbox = { console: console };
 vm.createContext(sandbox);
-vm.runInContext(block + "\nthis.api = { tyText, yaleText, wgText, wgsText, mps2Text, grText, wgsOpts, phSplitTone };", sandbox);
-const { tyText, yaleText, wgText, wgsText, mps2Text, grText, wgsOpts, phSplitTone } = sandbox.api;
+vm.runInContext(block + "\nthis.api = { tyText, yaleText, wgText, wgsText, mps2Text, grText, cyrText, wgsOpts, phSplitTone };", sandbox);
+const { tyText, yaleText, wgText, wgsText, mps2Text, grText, cyrText, wgsOpts, phSplitTone } = sandbox.api;
 
 /* ---------- 2. 调号解析 ---------- */
 const SPACING = { "\u02C9": 1, "\u02CA": 2, "\u02C7": 3, "\u02CB": 4, "\u02D9": 5, "\u00B7": 5,
@@ -111,8 +111,8 @@ if (!fs.existsSync(TSV)) {
 }
 const rows = fs.readFileSync(TSV, "utf8").split(/\r?\n/).filter(Boolean).map((l) => l.split("\t"));
 
-const bad = { ty: [], yale: [], wg: [], mps2: [], gr: [] };
-const known = { yale: [], wg: [], gr: [] };
+const bad = { ty: [], yale: [], wg: [], mps2: [], gr: [], cyr: [] };
+const known = { yale: [], wg: [], gr: [], cyr: [] };
 let checked = 0, nasal = 0, eRows = 0;
 
 /* 对照表自身的已知偏差 */
@@ -198,6 +198,19 @@ for (const r of rows) {
       (grKnown(numBase, tone, r[7]) ? known.gr : bad.gr).push(item);
     }
   }
+
+  /* 西里尔转写：对照表用上标数字调，与项目输出同形，直接逐字符比 */
+  {
+    const input2 = isNasal
+      ? numBase + ["", "\u0304", "\u0301", "\u030C", "\u0300", ""][tone]
+      : input;
+    const mine = cyrText(input2);
+    if (mine !== (r[9] || "")) {
+      const item = [num, input2, mine, r[9]];
+      /* 对照表把 ㄌㄛ（咯 / 囉）写作 лё（/lʲo/），按 Palladius 惯例应为 ло */
+      (numBase === "lo" ? known.cyr : bad.cyr).push(item);
+    }
+  }
 }
 
 /* ---------- 4. 简式：严式去掉送气符 ---------- */
@@ -238,6 +251,7 @@ report("威妥玛（严式）", bad.wg, known.wg);
 report("威妥玛（简式）", wgsBad);
 report("注音二式", bad.mps2);
 report("国语罗马字", bad.gr, known.gr);
+report("西里尔转写", bad.cyr, known.cyr);
 
 if (known.yale.length) console.log("  耶鲁已知偏差：%d 条 -un 韵，对照表写法不统一，按韵母表统一作 -wun", known.yale.length);
 if (known.gr.length) console.log("  国语罗马字已知偏差：%d 条（轻声 m/n/l/r 用基本式、零星音节取值）", known.gr.length);
@@ -245,7 +259,7 @@ if (known.wg.length) console.log("  威妥玛已知偏差：%d 条 yan，标准�
 console.log("  简式开关自检：%s / ü→u：%s / 去调：%s", uSample, uOut, noTone);
 
 const ok = !bad.ty.length && !bad.yale.length && !bad.wg.length && !wgsBad.length &&
-  !bad.mps2.length && !bad.gr.length &&
+  !bad.mps2.length && !bad.gr.length && !bad.cyr.length &&
   uSample === "chün¹" && uOut === "chun¹" && noTone === "chün";
 console.log("\n" + (ok ? "全部一致 ✓" : "存在不一致 ✗"));
 process.exit(ok ? 0 : 1);
