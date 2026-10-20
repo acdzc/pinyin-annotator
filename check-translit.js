@@ -45,8 +45,8 @@ const block = extract(template, "/* @check-translit:begin", "/* @check-translit:
 
 const sandbox = { console: console };
 vm.createContext(sandbox);
-vm.runInContext(block + "\nthis.api = { tyText, yaleText, wgText, wgsText, mps2Text, wgsOpts, phSplitTone };", sandbox);
-const { tyText, yaleText, wgText, wgsText, mps2Text, wgsOpts, phSplitTone } = sandbox.api;
+vm.runInContext(block + "\nthis.api = { tyText, yaleText, wgText, wgsText, mps2Text, grText, wgsOpts, phSplitTone };", sandbox);
+const { tyText, yaleText, wgText, wgsText, mps2Text, grText, wgsOpts, phSplitTone } = sandbox.api;
 
 /* ---------- 2. 调号解析 ---------- */
 const SPACING = { "\u02C9": 1, "\u02CA": 2, "\u02C7": 3, "\u02CB": 4, "\u02D9": 5, "\u00B7": 5,
@@ -111,13 +111,25 @@ if (!fs.existsSync(TSV)) {
 }
 const rows = fs.readFileSync(TSV, "utf8").split(/\r?\n/).filter(Boolean).map((l) => l.split("\t"));
 
-const bad = { ty: [], yale: [], wg: [], mps2: [] };
-const known = { yale: [], wg: [] };
+const bad = { ty: [], yale: [], wg: [], mps2: [], gr: [] };
+const known = { yale: [], wg: [], gr: [] };
 let checked = 0, nasal = 0, eRows = 0;
 
 /* 对照表自身的已知偏差 */
 const KNOWN_YALE_UN = /^(chun|cun|dun|hun|kun|nun|sun|tun|zhun|zun)$/;
 const KNOWN_WG = /^(yan)$/;
+/* 国语罗马字列的已知偏差（脚本单独计数，不算失败）：
+   ① m/n/l/r 声母 + 轻声：表里作「.lha」这种一声形，1928 规范轻声用基本式（.la），
+      实际 GR 读物也写作 ma / le / ne 一类；
+   ② 零星音节：表里把它们当非 m/n/l/r 声母或按错韵母处理（dhen、diar、lhiuarn、
+      thei、waa、yae 等），按 1928 规则应为 den、dya、liuan、tei、woa、yeai。 */
+const KNOWN_GR_ARTIFACT = /^(den|dia|lo|lvan|lvn|me|nun|tei)$/;
+function grKnown(numBase, tone, ref) {
+  if (tone === 5 && /^[mnlr]/.test(numBase)) return "轻声（m/n/l/r）";
+  if (KNOWN_GR_ARTIFACT.test(numBase)) return "音节取值";
+  if (ref && (numBase === "wa" || numBase === "yai") && tone === 3) return "音节取值";
+  return null;
+}
 
 for (const r of rows) {
   const num = r[0] || "";
@@ -173,6 +185,19 @@ for (const r of rows) {
       bad.mps2.push([num, input, mps2Text(input), r[4]]);
     }
   }
+
+  /* 国语罗马字：拼写本身承载声调，直接逐字符比对。
+     鼻音行的拼音列不带调号（调值只在编号列），这里按调值补组合调号再转。 */
+  {
+    const grIn = isNasal
+      ? numBase + ["", "\u0304", "\u0301", "\u030C", "\u0300", ""][tone]
+      : input;
+    const mine = grText(grIn);
+    if (mine !== (r[7] || "")) {
+      const item = [num, grIn, mine, r[7]];
+      (grKnown(numBase, tone, r[7]) ? known.gr : bad.gr).push(item);
+    }
+  }
 }
 
 /* ---------- 4. 简式：严式去掉送气符 ---------- */
@@ -212,13 +237,15 @@ report("耶鲁拼音", bad.yale, known.yale);
 report("威妥玛（严式）", bad.wg, known.wg);
 report("威妥玛（简式）", wgsBad);
 report("注音二式", bad.mps2);
+report("国语罗马字", bad.gr, known.gr);
 
 if (known.yale.length) console.log("  耶鲁已知偏差：%d 条 -un 韵，对照表写法不统一，按韵母表统一作 -wun", known.yale.length);
+if (known.gr.length) console.log("  国语罗马字已知偏差：%d 条（轻声 m/n/l/r 用基本式、零星音节取值）", known.gr.length);
 if (known.wg.length) console.log("  威妥玛已知偏差：%d 条 yan，标准作 yen", known.wg.length);
 console.log("  简式开关自检：%s / ü→u：%s / 去调：%s", uSample, uOut, noTone);
 
 const ok = !bad.ty.length && !bad.yale.length && !bad.wg.length && !wgsBad.length &&
-  !bad.mps2.length &&
+  !bad.mps2.length && !bad.gr.length &&
   uSample === "chün¹" && uOut === "chun¹" && noTone === "chün";
 console.log("\n" + (ok ? "全部一致 ✓" : "存在不一致 ✗"));
 process.exit(ok ? 0 : 1);
