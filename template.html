@@ -926,6 +926,7 @@ var I18N = {
     "ph.wg": "威妥瑪（嚴式）",
     "ph.wgs": "威妥瑪（簡式）",
     "ph.mps2": "注音二式",
+    "ph.gr": "國語羅馬字",
     "wgs.tone.lbl": "簡式聲調",
     "wgs.tone.num": "數字",
     "wgs.tone.none": "不標",
@@ -1162,6 +1163,7 @@ var I18N = {
     "ph.wg": "Wade-Giles (strict)",
     "ph.wgs": "Wade-Giles (plain)",
     "ph.mps2": "MPS2",
+    "ph.gr": "Gwoyeu Romatzyh",
     "wgs.tone.lbl": "Plain tones",
     "wgs.tone.num": "Numbers",
     "wgs.tone.none": "None",
@@ -1937,6 +1939,163 @@ function applyI18n() {
     return (b.slice(0, idx + 1) + MPS2_MARK[sp.tone] + b.slice(idx + 1)).normalize("NFC");
   }
 
+  /* ===== 國語羅馬字（Gwooyeu Romatzyh / Gwoyeu Romatzyh，GR，國音字母第二式）=====
+     规则依据：1928 年大学院公布的《國語羅馬字》（赵元任、林语堂等拟订）。
+     与后来借用其骨架、改用调号的注音二式不同，GR 用「拼写标调」——不用任何调号，
+     靠改变音节内部的字母表示四声：
+       一声 基本式；但 m / n / l / r 声母要插入 h（媽 mha、拉 lha、扔 rheng），
+            因为这几个声母的基式被二声占用
+       二声 m / n / l / r 声母直接用基本式；其余把介音 i / u / iu 换成 y / w / yu
+            （錢 chyan、胡 hwu、徐 shyu、元 yuan），开口呼则在主要元音后加 r
+            （茶 char、同 torng、十 shyr、兒 erl）
+       三声 单元音双写（起 chii、古 guu、死 syy）；ie / ei / uo / ou 双写其中的 e / o
+            （解 jiee、美 meei、果 guoo、口 koou）；其余把介音或韵尾 i / u / iu
+            改成 e / o / eu（假 jea、管 goan、海 hae、鳥 neau、雪 sheue），
+            介音改了就不再动韵尾（小 sheau、拐 goai）
+       四声 韵尾 i / u / n / ng / l 改写成 y / w / nn / nq / ll（在 tzay、到 daw、
+            半 bann、正 jenq、二 ell），其余一律缀 h（大 dah、世 shyh、續 shiuh）
+     拼写骨架：空韵 ㄭ 作 -y（知 jy、思 sy）、ㄦ 作 el、ㄩ 作 iu（居 jiu）、
+           -ong 作 ong（中 jong）、零声母 weng 作 ueng；一声的零声母不带 y / w
+           （一 i、烏 u、迂 iu、英 ing）。轻声用「.」+ 基本式（.de、.tz、.m）。
+     儿化：韵尾 -n / -i 脱落再缀 -l（花兒 hual、點兒 deal、事兒 shell）。 */
+  var GR_INI = { b: "b", p: "p", m: "m", f: "f", d: "d", t: "t", n: "n", l: "l",
+    g: "g", k: "k", h: "h", j: "j", q: "ch", x: "sh", zh: "j", ch: "ch", sh: "sh",
+    r: "r", z: "tz", c: "ts", s: "s" };
+  /* 空韵与叹词：整音节特例 */
+  var GR_SYL = { zhi: "jy", chi: "chy", shi: "shy", ri: "ry", zi: "tzy", ci: "tsy",
+    si: "sy", m: "m", n: "n", ng: "ng", hm: "hng", hng: "hng" };
+  /* 零声母音节 → 基本式韵母（一声不带 y / w） */
+  var GR_ZERO = { a: "a", ai: "ai", an: "an", ang: "ang", ao: "ao", e: "e", ei: "ei",
+    en: "en", eng: "eng", er: "er", o: "o", ou: "ou",
+    yi: "i", ya: "ia", ye: "ie", yao: "iao", you: "iu", yan: "ian", yin: "in",
+    yang: "iang", ying: "ing", yong: "iong", yo: "io", yai: "iai",
+    wu: "u", wa: "ua", wo: "uo", wai: "uai", wei: "ui", wan: "uan", wen: "un",
+    wang: "uang", weng: "ueng", yu: "ü", yue: "üe", yuan: "üan", yun: "ün" };
+  /* 拼音韵母 → 四声写法 [一声, 二声, 三声, 四声] */
+  var GR_FIN = {
+    a: ["a", "ar", "aa", "ah"], o: ["o", "or", "oo", "oh"],
+    e: ["e", "er", "ee", "eh"], "ê": ["ê", "êr", "êe", "êh"],
+    ai: ["ai", "air", "ae", "ay"], ei: ["ei", "eir", "eei", "ey"],
+    ao: ["au", "aur", "ao", "aw"], ou: ["ou", "our", "oou", "ow"],
+    an: ["an", "arn", "aan", "ann"], en: ["en", "ern", "een", "enn"],
+    ang: ["ang", "arng", "aang", "anq"], eng: ["eng", "erng", "eeng", "enq"],
+    er: ["el", "erl", "eel", "ell"],
+    i: ["i", "yi", "ii", "ih"], ia: ["ia", "ya", "ea", "iah"],
+    io: ["io", "yo", "ioo", "ioh"], ie: ["ie", "ye", "iee", "ieh"],
+    iai: ["iai", "yai", "eai", "iay"], iao: ["iau", "yau", "eau", "iaw"],
+    iu: ["iou", "you", "eou", "iow"], ian: ["ian", "yan", "ean", "iann"],
+    in: ["in", "yn", "iin", "inn"], iang: ["iang", "yang", "eang", "ianq"],
+    ing: ["ing", "yng", "iing", "inq"], iong: ["iong", "yong", "eong", "ionq"],
+    u: ["u", "wu", "uu", "uh"], ua: ["ua", "wa", "oa", "uah"],
+    uo: ["uo", "wo", "uoo", "uoh"], uai: ["uai", "wai", "oai", "uay"],
+    ui: ["uei", "wei", "oei", "uey"], un: ["uen", "wen", "oen", "uenn"],
+    uan: ["uan", "wan", "oan", "uann"], uang: ["uang", "wang", "oang", "uanq"],
+    ong: ["ong", "orng", "oong", "onq"], ueng: ["ueng", "weng", "woeng", "wenq"],
+    "ü": ["iu", "yu", "eu", "iuh"], "üe": ["iue", "yue", "eue", "iueh"],
+    "üan": ["iuan", "yuan", "euan", "iuann"], "ün": ["iun", "yun", "eun", "iunn"]
+  };
+  /* 儿化韵母 → 四声写法（韵尾 -n / -i 脱落后缀 -l；参考表无儿化行，此表按规则推导） */
+  var GR_ERHUA = {
+    a: ["al", "arl", "aal", "all"], o: ["ol", "orl", "ool", "oll"],
+    e: ["el", "erl", "eel", "ell"], "ê": ["êl", "êrl", "êel", "êll"],
+    ai: ["al", "arl", "aal", "all"], an: ["al", "arl", "aal", "all"],
+    ei: ["el", "erl", "eel", "ell"], en: ["el", "erl", "eel", "ell"],
+    ao: ["aul", "aurl", "aol", "awl"], ou: ["oul", "ourl", "ooul", "owl"],
+    ang: ["angl", "arngl", "aangl", "anql"], eng: ["engl", "erngl", "eengl", "enql"],
+    i: ["iel", "yel", "iiel", "iell"], ia: ["ial", "yal", "eal", "iall"],
+    io: ["iol", "yol", "iool", "iohl"], ie: ["iel", "yel", "ieel", "iehl"],
+    iao: ["iaul", "yaul", "eaul", "iawl"], iu: ["ioul", "youl", "eoul", "iowl"],
+    ian: ["ial", "yal", "eal", "iall"], in: ["iel", "yel", "iiel", "iell"],
+    iang: ["iangl", "yangl", "eangl", "ianql"], ing: ["ingl", "yngl", "iingl", "inql"],
+    iong: ["iongl", "yongl", "eongl", "ionql"],
+    u: ["ul", "wul", "uul", "ull"], ua: ["ual", "wal", "oal", "uall"],
+    uo: ["uol", "wol", "uool", "uohl"], uai: ["ual", "wal", "oal", "uall"],
+    ui: ["uel", "wel", "oel", "uell"], un: ["uel", "wel", "oel", "uell"],
+    uan: ["ual", "wal", "oal", "uall"], uang: ["uangl", "wangl", "oangl", "uanql"],
+    ong: ["ongl", "orngl", "oongl", "onql"], ueng: ["uengl", "wengl", "woengl", "wenql"],
+    "ü": ["iul", "yul", "eul", "iuhl"], "üe": ["iuel", "yuel", "euel", "iuehl"],
+    "üan": ["iual", "yual", "eual", "iuall"], "ün": ["iul", "yul", "eul", "iuhl"]
+  };
+  /* 鼻音叹词（m / n / ng / hm / hng）四声；hm 与 hng 在 GR 里合流 */
+  var GR_NASAL = { m: ["m", "rm", "mm", "mh"], n: ["n", "rn", "nn", "nh"],
+    ng: ["ng", "rng", "nng", "nq"], hng: ["hng", "hrng", "heng", "hnq"] };
+  /* 零声母改写：二三四声把开头的 i / u / iu 换成 y / w / yu。
+     介音后面跟着元音时是「换成 y / w」，单独成韵或接鼻音时是「加 y / w」
+     （也 yee 是换、以 yii 是加），介音在变形里已经没了就按韵母行补前缀。 */
+  function grZeroFix(s, fin) {
+    if (s.charAt(0) === "y" || s.charAt(0) === "w") return s;
+    if (s.slice(0, 2) === "iu") return "yu" + s.slice(2);
+    if (s.charAt(0) === "i") return "aeou".indexOf(s.charAt(1)) >= 0 ? "y" + s.slice(1) : "y" + s;
+    if (s.charAt(0) === "u") return "aeio".indexOf(s.charAt(1)) >= 0 ? "w" + s.slice(1) : "w" + s;
+    if (fin.charAt(0) === "ü" || fin.slice(0, 2) === "iu" || fin.charAt(0) === "i") return "y" + s;
+    if (fin.charAt(0) === "u") return "w" + s;
+    return s;
+  }
+  /* 拆出「声母 + 韵母（GR 键）」；erhua 时韵母改用 GR_ERHUA */
+  function grInfo(base) {
+    var s = base.replace(/v/g, "ü").toLowerCase();
+    var erhua = false;
+    if (s.length > 2 && s !== "er" && s.charAt(s.length - 1) === "r") { erhua = true; s = s.slice(0, -1); }
+    if (!erhua && GR_ZERO[s]) return { zero: true, fin: GR_ZERO[s] };
+    if (!erhua && GR_SYL[s]) {
+      if (s === "m" || s === "n" || s === "ng" || s === "hm" || s === "hng") return { nasal: s };
+      return { empty: true, gr: GR_SYL[s] };   // 知 jy / 思 sy 一类
+    }
+    var ini = "", rest = s;
+    if (s.slice(0, 2) === "zh" || s.slice(0, 2) === "ch" || s.slice(0, 2) === "sh") {
+      ini = s.slice(0, 2); rest = s.slice(2);
+    } else if (GR_INI[s.charAt(0)]) {
+      ini = s.charAt(0); rest = s.slice(1);
+    }
+    if (rest.charAt(0) === "u" && (ini === "j" || ini === "q" || ini === "x")) rest = "ü" + rest.slice(1);
+    /* 舌尖元音：zhi / si 一类本身是整音节特例，只有儿化时才走到这里（事兒 shel） */
+    if (rest === "i" && ("zh ch sh r z c s".split(" ").indexOf(ini) >= 0)) {
+      return { ini: ini, zero: !ini, erhuaEmpty: true };
+    }
+    return { ini: ini, zero: !ini, fin: rest, erhua: erhua };
+  }
+  function grText(py) {
+    if (!py) return null;
+    var sp = phSplitTone(py);
+    var t = (sp.tone >= 1 && sp.tone <= 4) ? sp.tone : 0;   // 0 = 轻声
+    var info = grInfo(sp.base);
+    if (!info) return py;
+    var dot = t ? "" : ".";
+    if (info.nasal) {
+      var nr = GR_NASAL[info.nasal === "hm" ? "hng" : info.nasal];
+      return nr ? dot + nr[t ? t - 1 : 0] : py;
+    }
+    if (info.empty) {   // 空韵：一声 jy、二声 jyr、三声 jyy、四声 jyh；ri 属 m/n/l/r 一流，一声作 rhy
+      var b = info.gr;
+      if (!t) return "." + b;
+      if (b === "ry") {
+        if (t === 1) return "rhy";
+        if (t === 2) return "ry";
+      } else {
+        if (t === 1) return b;
+        if (t === 2) return b + "r";
+      }
+      return b + (t === 3 ? "y" : "h");
+    }
+    if (info.erhuaEmpty) return dot + (GR_INI[info.ini] || "") + GR_ERHUA.e[t ? t - 1 : 0];
+    var tbl = info.erhua ? GR_ERHUA[info.fin] : GR_FIN[info.fin];
+    if (!tbl) return py;
+    var out = tbl[t ? t - 1 : 0];
+    if (info.ini) {
+      var ini = GR_INI[info.ini];
+      if (!ini) return py;
+      /* m / n / l / r 声母：一声插 h、二声回到基本式（基式被二声占用）；
+         轻声不是一声，用不带 h 的基本式 */
+      var nasalIni = (ini === "m" || ini === "n" || ini === "l" || ini === "r");
+      if (!t) return "." + ini + tbl[0];
+      if (nasalIni && t === 1) return ini + "h" + tbl[0];
+      if (nasalIni && t === 2) return ini + tbl[0];
+      return ini + out;
+    }
+    if (!t) return "." + tbl[0];
+    return t === 1 ? out : grZeroFix(out, info.fin);
+  }
+
   /* @check-translit:end */
   /* ===== 音标方案注册表 =====
      读音层始终以拼音存储，输出层只负责「拼音音节 → 目标拼写」的序列化。
@@ -2076,8 +2235,23 @@ function applyI18n() {
     webItem: null
   });
 
+  registerPhScheme({
+    id: "gr",
+    label: "国语罗马字",
+    i18n: "ph.gr",
+    labelKind: "py",
+    script: "latin",
+    pyFont: true,
+    wordRuby: true,
+    webFormat: false,
+    text: grText,
+    rtHtml: grText,
+    charRuby: latinRuby(grText),
+    webItem: null
+  });
+
   /* 侧栏下拉框的显示顺序（注册顺序不参与排序，便于日后插入新方案） */
-  var PH_ORDER = ["py", "ty", "yale", "wg", "wgs", "zy", "mps2"];
+  var PH_ORDER = ["py", "ty", "yale", "wg", "wgs", "zy", "mps2", "gr"];
 
   // 变体默认（zhuyin 版注入 __VARIANT.ph = "zy"）；未知 id 一律回落到拼音
   phonetic = (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) ? window.__VARIANT.ph : "py";
@@ -4003,7 +4177,7 @@ function applyI18n() {
   // 拼音音节之后的收尾字符是否为字母（用于决定要不要在下一个词组拼音前补空格）
   /* 上一个音节末尾是否仍是音标（决定词组间要不要补空格）：
      拼音字母 + 调号字母 + 耶鲁的空格调号 ¯ ´ ˇ ` ˙ · + 威妥玛的上标数字 ¹²³⁴⁵ + 注音符号 */
-  var PY_LAST_RE = /[A-Za-züÜāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜêẑńňǹɡ\u02CA\u02C7\u02CB\u02D9\u00AF\u00B4`\u00B7\u00B9\u00B2\u00B3\u2074\u2075\u0300-\u0304\u0307\u030C\u3105-\u312F]/;
+  var PY_LAST_RE = /[A-Za-züÜāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜêẑńňǹŕźɡ\u02CA\u02C7\u02CB\u02D9\u00AF\u00B4`\u00B7\u00B9\u00B2\u00B3\u2074\u2075\u0300-\u0304\u0307\u030C\u3105-\u312F]/;
   /* 「HTML+CSS 注音」格式引用的注音样式表地址（zhuyin.css 与四个 HTML 同目录部署；
      如站点域名或路径不同，改这里即可） */
   var ZY_CSS_URL = "https://pinyin-annotator.tjsky.net/zhuyin.css";
