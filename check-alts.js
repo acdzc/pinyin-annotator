@@ -36,14 +36,14 @@ const lib = engineCtx.pinyinPro;
 
 const template = fs.readFileSync(path.join(ROOT, "template.html"), "utf8");
 const altBlock = extract(template, "/* @check-alts:begin", "/* @check-alts:end */", "@check-alts");
-const tyBlock = extract(template, "/* @check-tongyong:begin", "/* @check-tongyong:end */", "@check-tongyong");
+const tyBlock = extract(template, "/* @check-translit:begin", "/* @check-translit:end */", "@check-translit");
 
 const py2zy = fs.readFileSync(path.join(ROOT, "vendor", "py2zy.snippet.js"), "utf8")
   .replace(/if \(typeof module[\s\S]*$/, "");
 
 const sandbox = { console: console };
 vm.createContext(sandbox);
-vm.runInContext(py2zy + "\n" + tyBlock + "\n" + altBlock + "\nthis.tyText = tyText; this.cleanAlts = cleanAlts;", sandbox);
+vm.runInContext(py2zy + "\n" + tyBlock + "\n" + altBlock + "\nthis.tyText = tyText; this.yaleText = yaleText; this.wgText = wgText; this.wgsText = wgsText; this.cleanAlts = cleanAlts;", sandbox);
 
 /* 与 template.html 的 zyText 保持一致的注音渲染（仅用于比对显示结果） */
 function zyText(py) {
@@ -56,13 +56,16 @@ function zyText(py) {
 const SCHEMES = [
   { id: "py", render: (s) => s, latin: true },
   { id: "ty", render: (s) => sandbox.tyText(s), latin: true },
+  { id: "yale", render: (s) => sandbox.yaleText(s), latin: true },
+  { id: "wg", render: (s) => sandbox.wgText(s), latin: true },
+  { id: "wgs", render: (s) => sandbox.wgsText(s), latin: true },
   { id: "zy", render: zyText, latin: false }
 ];
 
 /* ---------- 扫描 ---------- */
 const issues = [];
 let scanned = 0, multi = 0;
-const stripped = { py: [], ty: [], zy: [] };
+const stripped = {};
 
 for (let cp = 0x4e00; cp <= 0x9fa5; cp++) {
   const ch = String.fromCharCode(cp);
@@ -77,7 +80,7 @@ for (let cp = 0x4e00; cp <= 0x9fa5; cp++) {
   for (const sc of SCHEMES) {
     const clean = sandbox.cleanAlts(alts, "", sc.render, sc.latin);
     if (!clean.length) issues.push(`${ch} [${sc.id}] 清洗后为空（原始：${alts.join(" ")}）`);
-    if (clean.length !== alts.length) stripped[sc.id].push(ch + " " + alts.join("/") + " → " + clean.join("/"));
+    if (clean.length !== alts.length) (stripped[sc.id] = stripped[sc.id] || []).push(ch + " " + alts.join("/") + " → " + clean.join("/"));
     const seen = new Set();
     for (const r of clean) {
       const shown = sc.render(r);
@@ -98,8 +101,9 @@ for (let cp = 0x4e00; cp <= 0x9fa5; cp++) {
 /* ---------- 输出 ---------- */
 console.log("扫描汉字 %d 个，其中多音字 %d 个", scanned, multi);
 for (const sc of SCHEMES) {
-  console.log("  %s：%d 个字有候选被过滤", sc.id, stripped[sc.id].length);
-  stripped[sc.id].slice(0, 5).forEach((s) => console.log("      " + s));
+  const list = stripped[sc.id] || [];
+  console.log("  %s：%d 个字有候选被过滤", sc.id, list.length);
+  list.slice(0, 3).forEach((s) => console.log("      " + s));
 }
 console.log("\n欸 的候选：");
 for (const sc of SCHEMES) {
