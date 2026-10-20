@@ -245,6 +245,14 @@
     letter-spacing: 0.5px;
     color: #6b6558;
   }
+  /* 西里尔转写：内嵌 Andika 子集不含西里尔字母，改用系统西文字体栈（含上标数字），
+     避免逐字回退导致字号、基线不一致 */
+  body.cyr-on #preview rt, body.cyr-on #print-area rt {
+    font-family: "Segoe UI", "PT Sans", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.42em;
+    letter-spacing: 0.5px;
+    color: #6b6558;
+  }
   /* 调号（二三四声）：transform 拉高并左移到末符号上方，负 margin 抵消自身占位宽度（不影响分页） */
   #preview .zy-t, #print-area .zy-t {
     display: inline-block; transform: translate(-0.5em, -0.7em); margin-right: -0.5em;
@@ -617,6 +625,13 @@
             <button type="button" id="wgs-u-plain">u</button>
           </div>
         </div>
+        <div class="ctl pyfont-ctl" id="cyr-tone-ctl" hidden>
+          <label class="lbl" data-i18n="cyr.tone.lbl">西里尔声调</label>
+          <div class="seg" role="group" aria-label="西里尔转写声调" data-i18n-aria="cyr.tone.lbl">
+            <button type="button" id="cyr-tone-on" class="on" data-i18n="cyr.tone.num">数字</button>
+            <button type="button" id="cyr-tone-off" data-i18n="cyr.tone.none">不标</button>
+          </div>
+        </div>
         <div class="ctl pyfont-ctl" id="zydir-ctl">
           <label class="lbl" data-i18n="l.zydir">注音方向</label>
           <div class="seg" role="group" aria-label="注音方向" data-i18n-aria="zydir.aria">
@@ -927,6 +942,10 @@ var I18N = {
     "ph.wgs": "威妥瑪（簡式）",
     "ph.mps2": "注音二式",
     "ph.gr": "國語羅馬字",
+    "ph.cyr": "西里爾轉寫",
+    "cyr.tone.lbl": "西里爾聲調",
+    "cyr.tone.num": "數字",
+    "cyr.tone.none": "不標",
     "wgs.tone.lbl": "簡式聲調",
     "wgs.tone.num": "數字",
     "wgs.tone.none": "不標",
@@ -1164,6 +1183,10 @@ var I18N = {
     "ph.wgs": "Wade-Giles (plain)",
     "ph.mps2": "MPS2",
     "ph.gr": "Gwoyeu Romatzyh",
+    "ph.cyr": "Cyrillic (Palladius)",
+    "cyr.tone.lbl": "Cyrillic tone",
+    "cyr.tone.num": "Numbers",
+    "cyr.tone.none": "None",
     "wgs.tone.lbl": "Plain tones",
     "wgs.tone.num": "Numbers",
     "wgs.tone.none": "None",
@@ -2096,6 +2119,72 @@ function applyI18n() {
     return t === 1 ? out : grZeroFix(out, info.fin);
   }
 
+  /* ===== 汉语西里尔转写（ Palladius 体系 / 俄文拼音）=====
+     规则依据：Палладиус 体系（19 世纪 архимандрит Палладий 拟订，后经多次修订，
+     仍是俄语转写汉语的标准）。声母按俄文字母的听感对译，韵母整体成音节：
+       b/p/m/f → б/п/м/ф，d/t/n/l → д/т/н/л，g/k/h → г/к/х，
+       j/q/x → цз/ц/с，zh/ch/sh/r → чж/ч/ш/ж，z/c/s → цз/ц/с；
+     空韵：翘舌后 и（чжи / чи / ши / жи），舌齿后 ы（цзы / цы / сы）；
+     韵母：-n 收 -нь（ань / энь / янь / уань），-ng 收 -н（ан / эн / ян / уан），
+           ü 系作 юй / юэ / юань / юнь（居 цзюй、女 нюй），iu 作 ю（六 лю），
+           uo 作 о（国 го、说 шо），iong 作 юн（兄 сюн）；ю 前不再补 й；
+           零声母：i 系作 я / е / ю（压 я、也 е、有 ю），u 系以 в 起（瓦 ва、为 вэй、文 вэнь），
+           ü 系作 юй / юэ / юань / юнь（月 юэ）；ㄝ 与单元音 o 随开口呼作 эй / о。
+     例外：hui 作 хуэй（不写 хуй，避俄语粗话）；儿化在韵母后直接缀 р（花兒 хуар）。
+     声调：上标数字 ¹—⁵（与威妥玛同一套），可在侧栏关掉「数字调」。
+     字体：Andika 子集不含西里尔字母，选中本方案时预览与打印强制切系统西文字体栈。 */
+  var CYR_INI = { b: "б", p: "п", m: "м", f: "ф", d: "д", t: "т", n: "н", l: "л",
+    g: "г", k: "к", h: "х", j: "цз", q: "ц", x: "с", zh: "чж", ch: "ч", sh: "ш",
+    r: "ж", z: "цз", c: "ц", s: "с" };
+  /* 空韵与叹词：整音节特例 */
+  var CYR_SYL = { zhi: "чжи", chi: "чи", shi: "ши", ri: "жи", zi: "цзы", ci: "цы",
+    si: "сы", m: "м", n: "нь", ng: "н", hm: "хм", hng: "хн" };
+  /* 零声母音节（u 系以 в 起，不带 у 介音） */
+  var CYR_ZERO = { a: "а", ai: "ай", an: "ань", ang: "ан", ao: "ао", e: "э", ei: "эй",
+    en: "энь", eng: "эн", er: "эр", o: "о", ou: "оу",
+    yi: "и", ya: "я", ye: "е", yao: "яо", you: "ю", yan: "янь", yin: "инь",
+    yang: "ян", ying: "ин", yong: "юн", yo: "ё", yai: "яай",
+    wu: "у", wa: "ва", wo: "во", wai: "вай", wei: "вэй", wan: "вань", wen: "вэнь",
+    wang: "ван", weng: "вэн", yu: "юй", yue: "юэ", yuan: "юань", yun: "юнь" };
+  var CYR_FIN = { a: "а", o: "о", e: "э", ai: "ай", ei: "эй", ao: "ао", ou: "оу",
+    an: "ань", en: "энь", ang: "ан", eng: "эн", er: "эр",
+    i: "и", ia: "я", ie: "е", iao: "яо", iu: "ю", ian: "янь", in: "инь",
+    iang: "ян", ing: "ин", iong: "юн", io: "ё",
+    u: "у", ua: "уа", uo: "о", uai: "уай", ui: "уй", uan: "уань", un: "унь",
+    uang: "уан", ong: "ун",
+    "ü": "юй", "üe": "юэ", "üan": "юань", "ün": "юнь",
+    m: "м", n: "нь", ng: "н", hm: "хм", hng: "хн", "ê": "эй" };
+  function cyrBaseOf(base) {
+    var s = base.replace(/v/g, "ü").toLowerCase();
+    if (CYR_ZERO[s]) return CYR_ZERO[s];
+    if (CYR_SYL[s]) return CYR_SYL[s];
+    /* 儿化：韵母后直接缀 р（花兒 → хуар） */
+    if (s.length > 2 && s !== "er" && s.charAt(s.length - 1) === "r") {
+      var stem = cyrBaseOf(s.slice(0, -1));
+      return stem ? stem + "р" : null;
+    }
+    var ini = "", rest = s;
+    if (s.slice(0, 2) === "zh" || s.slice(0, 2) === "ch" || s.slice(0, 2) === "sh") {
+      ini = s.slice(0, 2); rest = s.slice(2);
+    } else if (CYR_INI[s.charAt(0)]) {
+      ini = s.charAt(0); rest = s.slice(1);
+    }
+    if (rest.charAt(0) === "u" && (ini === "j" || ini === "q" || ini === "x")) rest = "ü" + rest.slice(1);
+    if (ini === "h" && rest === "ui") return "хуэй";   // 避 хуй
+    var fin = CYR_FIN[rest];
+    if (!fin) return null;
+    return (ini ? CYR_INI[ini] : "") + fin;
+  }
+  var cyrOpts = { tone: true };   // 默认标上标数字调，可在侧栏关掉
+  function cyrText(py) {
+    if (!py) return null;
+    var sp = phSplitTone(py);
+    var b = cyrBaseOf(sp.base);
+    if (b === null) return py;
+    var t = sp.tone || 5;   // 不带调号的音节即轻声
+    return b + (cyrOpts.tone && t >= 1 && t <= 5 ? WG_SUP[t] : "");
+  }
+
   /* @check-translit:end */
   /* ===== 音标方案注册表 =====
      读音层始终以拼音存储，输出层只负责「拼音音节 → 目标拼写」的序列化。
@@ -2250,8 +2339,23 @@ function applyI18n() {
     webItem: null
   });
 
+  registerPhScheme({
+    id: "cyr",
+    label: "西里尔转写",
+    i18n: "ph.cyr",
+    labelKind: "py",
+    script: "cyrillic",
+    pyFont: true,      // 侧栏仍按拉丁方案处理；西里尔字形由 body.cyr-on 的字体栈接管
+    wordRuby: true,
+    webFormat: false,
+    text: cyrText,
+    rtHtml: cyrText,
+    charRuby: latinRuby(cyrText),
+    webItem: null
+  });
+
   /* 侧栏下拉框的显示顺序（注册顺序不参与排序，便于日后插入新方案） */
-  var PH_ORDER = ["py", "ty", "yale", "wg", "wgs", "zy", "mps2", "gr"];
+  var PH_ORDER = ["py", "ty", "yale", "wg", "wgs", "zy", "mps2", "gr", "cyr"];
 
   // 变体默认（zhuyin 版注入 __VARIANT.ph = "zy"）；未知 id 一律回落到拼音
   phonetic = (window.__VARIANT && PH_SCHEMES[window.__VARIANT.ph]) ? window.__VARIANT.ph : "py";
@@ -3730,6 +3834,7 @@ function applyI18n() {
     var sch = getPhScheme(id);
     phonetic = sch.id;
     document.body.classList.toggle("zy-on", sch.id === "zy");
+    document.body.classList.toggle("cyr-on", sch.script === "cyrillic");
     document.body.dataset.ph = sch.id;   // 供 CSS / 调试按方案挂样式
     return sch;
   }
@@ -3753,8 +3858,25 @@ function applyI18n() {
     applyShowpyLabels();
     syncZywebFmt();
     syncWgsCtl();
+    syncCyrCtl();
     autoSwitchPyFont(sch.id);
   }
+  /* 西里尔转写的声调选项只在选中该方案时出现 */
+  function syncCyrCtl() {
+    $("cyr-tone-ctl").style.display = phonetic === "cyr" ? "" : "none";
+  }
+  function syncCyrButtons() {
+    $("cyr-tone-on").className = cyrOpts.tone ? "on" : "";
+    $("cyr-tone-off").className = cyrOpts.tone ? "" : "on";
+  }
+  function setCyrOpt(k, v) {
+    if (cyrOpts[k] === v) return;
+    cyrOpts[k] = v;
+    syncCyrButtons();
+    renderView();
+  }
+  $("cyr-tone-on").addEventListener("click", function () { setCyrOpt("tone", true); });
+  $("cyr-tone-off").addEventListener("click", function () { setCyrOpt("tone", false); });
   /* 威妥玛简式的两个选项（声调 / ü 写法）只在选中该方案时出现 */
   function syncWgsCtl() {
     // 用 style.display 而不是 hidden：.ctl 的 display:flex 会盖过 [hidden]
@@ -3884,6 +4006,7 @@ function applyI18n() {
     document.body.classList.remove("no-print-footer");
     // 音标方案：恢复拼音（标注方向一并恢复出厂默认的横排 / 上方）
     wgsOpts.tone = true; wgsOpts.u = false; syncWgsButtons();
+    cyrOpts.tone = true; syncCyrButtons();
     syncPhScheme("py");
     setZyDir("h");
     // 读音标准：恢复大陆读音
@@ -3923,6 +4046,7 @@ function applyI18n() {
       ph: phonetic,
       wgsTone: wgsOpts.tone,
       wgsU: wgsOpts.u,
+      cyrTone: cyrOpts.tone,
       zydir: zyDir,
       tw: twStd,
       ocv: ocVariant(),
@@ -4004,6 +4128,7 @@ function applyI18n() {
     // 标注方向（横排 / 直排，两种音标模式共用）
     if (typeof saved.wgsTone === "boolean") wgsOpts.tone = saved.wgsTone;
     if (typeof saved.wgsU === "boolean") wgsOpts.u = saved.wgsU;
+    if (typeof saved.cyrTone === "boolean") cyrOpts.tone = saved.cyrTone;
     syncWgsButtons();
     if (saved.zydir === "h" || saved.zydir === "v") setZyDir(saved.zydir);
     // 读音标准（台湾读音差异表为懒加载，恢复后异步重渲染）
@@ -4406,6 +4531,8 @@ function applyI18n() {
   // 音标方案下拉框：先按注册表生成选项，后面恢复保存样式时才能正确选中
   renderPhOptions();
   syncWgsButtons();
+  syncCyrButtons();
+  syncCyrCtl();
   // 「保存样式」的样式在首次渲染前应用
   applySavedStyle();
   // 变体默认态（zhuyin 版）：无保存设置时同步注音按钮/正文类，并触发台湾读音差异表懒加载
