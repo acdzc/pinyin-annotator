@@ -6,6 +6,8 @@ on:
       - main
     paths-ignore:
       - "README.md"
+      - "README.zh-TW.md"
+      - "README.en.md"
       - ".github/**"
   workflow_dispatch:
 

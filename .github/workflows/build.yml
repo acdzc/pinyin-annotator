@@ -57,6 +57,8 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # git describe 需要完整 tag 历史，才能算出上一版
 
       - uses: actions/setup-node@v4
         with:
@@ -68,11 +70,30 @@ jobs:
       - name: Package release zip
         run: |
           zip -q -r "pinyin-annotator-${GITHUB_REF_NAME}.zip" \
-            index.html main.html zhuyin.css README.md \
+            index.html main.html zhuyin.css README.md README.zh-TW.md README.en.md \
             mini.html pinyin.html plus.html zhuyin.html
+
+      # 发版说明优先用仓库内的三语模板（.github/release-notes.md），
+      # 缺失时回退为 GitHub 自动生成的 changelog。
+      - name: Prepare release notes
+        id: notes
+        run: |
+          NOTES=.github/release-notes.md
+          if [ -f "$NOTES" ]; then
+            PREV=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || echo main)
+            sed -e "s/{{VERSION}}/${GITHUB_REF_NAME}/g" \
+                -e "s/{{PREV}}/${PREV}/g" \
+                "$NOTES" > "$RUNNER_TEMP/release-notes.md"
+            echo "path=$RUNNER_TEMP/release-notes.md" >> "$GITHUB_OUTPUT"
+            echo "三语模板已生成，上一版：$PREV"
+          else
+            echo "path=" >> "$GITHUB_OUTPUT"
+            echo "未找到三语模板，回退为自动生成"
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: pinyin-annotator-*.zip
-          generate_release_notes: true
+          body_path: ${{ steps.notes.outputs.path }}
+          generate_release_notes: ${{ steps.notes.outputs.path == '' }}

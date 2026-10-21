@@ -124,6 +124,7 @@
     padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px;
     background: var(--accent-light); font-size: 12px; color: var(--ink);
   }
+  #lm-banner[hidden] { display: none; }
   #lm-banner .lm-bar { flex: 1; height: 6px; border-radius: 3px; background: #e8e1d3; overflow: hidden; min-width: 40px; }
   #lm-banner .lm-bar > div { height: 100%; background: var(--accent); border-radius: 3px; transition: width .2s; }
   #lm-banner button { font-size: 12px; padding: 4px 8px; flex-shrink: 0; }
@@ -508,11 +509,11 @@
 <main class="layout">
   <div class="left-col">
   <section class="card card-input no-print">
-    <h2 data-i18n="in.h2">原文输入区</h2>
-    <textarea id="input" placeholder="在这里粘贴或输入文章内容，支持多段落；也可以点击下方「导入 TXT」……" data-i18n-ph="in.ph" aria-label="文章输入区" data-i18n-aria="in.aria"></textarea>
+    <h2 data-i18n="in.h2">输入文章</h2>
+    <textarea id="input" placeholder="把文章粘贴到这里，可以多段；也可以点「导入 TXT」选文件。" data-i18n-ph="in.ph" aria-label="文章输入区" data-i18n-aria="in.aria"></textarea>
     <div class="btn-row">
       <button id="btn-import" data-i18n="b.import">导入 TXT</button>
-      <button id="btn-sample" data-i18n="b.sample">填入示例文章</button>
+      <button id="btn-sample" data-i18n="b.sample">示例文章</button>
       <button id="btn-clear" data-i18n="b.clear">清空</button>
       <span class="char-count" id="count">0 字</span>
     </div>
@@ -530,17 +531,17 @@
     </div>
     <!-- 高频操作紧贴输入区（清空下一行），不必拖到样式区底部寻找 -->
     <div class="btn-row" style="margin-top:14px;">
-      <button class="primary" id="btn-print" style="flex:1;white-space:nowrap;" data-i18n="b.print">打印 / 导出 PDF</button>
-      <button class="primary" id="btn-read" style="flex:1;white-space:nowrap;" data-i18n="b.read">进入阅读模式</button>
+      <button class="primary" id="btn-print" style="flex:1;white-space:nowrap;" data-i18n="b.print">打印 / PDF</button>
+      <button class="primary" id="btn-read" style="flex:1;white-space:nowrap;" data-i18n="b.read">阅读模式</button>
     </div>
     <div class="btn-row">
-      <button id="btn-copy" style="flex:1;" data-i18n="b.copy">复制内容及音标</button>
+      <button id="btn-copy" style="flex:1;" data-i18n="b.copy">复制</button>
       <select id="copy-format" style="flex:1;min-width:130px;" aria-label="复制格式" data-i18n-aria="copy.aria" data-i18n-title="copy.aria" title="复制格式">
-        <option value="word" data-i18n="fmt.word">富文本（Word）</option>
-        <option value="ruby" data-i18n="fmt.ruby">HTML ruby 标签</option>
-        <option value="pair" data-i18n="fmt.pair">字「音标」对照</option>
-        <option value="py" data-i18n="fmt.py">只复制音标（含标点）</option>
-        <option value="zyweb" data-i18n="fmt.zyweb">HTML+CSS 注音（网页）</option>
+        <option value="word" data-i18n="fmt.word">粘贴到 Word</option>
+        <option value="ruby" data-i18n="fmt.ruby">网页 ruby 标签</option>
+        <option value="pair" data-i18n="fmt.pair">字-音标 对照</option>
+        <option value="py" data-i18n="fmt.py">只复制音标</option>
+        <option value="zyweb" data-i18n="fmt.zyweb">网页注音（HTML+CSS）</option>
       </select>
     </div>
     <!-- 「HTML+CSS 注音」格式的可选网络字体（仅注音模式 + 选中该格式时显示） -->
@@ -555,8 +556,8 @@
       <span class="pyfont-hint" data-i18n="zyweb.hint">选择后，复制的源码会一并引入对应网络字体（font.emtech.cc 免费提供），粘贴目标网页无需安装字体。注音芫荽 BpmfIansui 的汉字字形自带右侧注音（IVS 规格）：直排复制时会把每个字的正确读音以 IVS 写进文字、由字型标注；横排复制时该字体仅用于注音符号，避免与结构标注重复。</span>
     </div>
     <div class="ctl" id="mode-ctl" style="margin-top:14px;">
-      <label class="lbl" data-i18n="nav.lbl">翻页方式</label>
-      <div class="seg" role="group" aria-label="翻页方式" data-i18n-aria="nav.lbl">
+      <label class="lbl" data-i18n="nav.lbl">预览方式</label>
+      <div class="seg" role="group" aria-label="预览方式" data-i18n-aria="nav.lbl">
         <button id="mode-page" class="on" type="button" data-i18n="nav.page">翻页</button>
         <button id="mode-scroll" type="button" data-i18n="nav.scroll">连续滚动</button>
       </div>
@@ -565,23 +566,23 @@
   </section>
 
   <section class="card card-style no-print">
-      <h2 class="h2-row"><span data-i18n="st.h2">样式设置区</span>
-        <button type="button" class="h2-extra" id="btn-save" data-i18n-title="b.save.title" data-i18n="b.save" title="把当前样式保存为默认：下次打开自动应用（仅保存在本浏览器的缓存中）">✓ 保存样式</button>
-        <button type="button" class="h2-extra" id="btn-reset" data-i18n-title="b.reset.title" data-i18n="b.reset" title="恢复全部样式为默认值（字号 28px、楷体、跟随汉字、逐字注音、间距 2px / 2.3 / 12px 等）">↺ 重置样式</button>
+      <h2 class="h2-row"><span data-i18n="st.h2">排版设置</span>
+        <button type="button" class="h2-extra" id="btn-save" data-i18n-title="b.save.title" data-i18n="b.save" title="把当前设置存为默认，下次打开自动套用（只存在这台设备的浏览器里）">✓ 保存设置</button>
+        <button type="button" class="h2-extra" id="btn-reset" data-i18n-title="b.reset.title" data-i18n="b.reset" title="全部恢复默认（字号 28px、楷体、音标跟随汉字、逐字注音、间距 2 / 2.3 / 12）">↺ 恢复默认</button>
       </h2>
       <div class="control-group">
         <div class="ctl">
-          <label class="lbl" for="fontsize" data-i18n="l.fontsize">汉字字号</label>
+          <label class="lbl" for="fontsize" data-i18n="l.fontsize">字号</label>
           <input type="range" id="fontsize" min="16" max="48" step="2" value="28">
           <span class="val" id="fontsize-val">28px</span>
         </div>
         <div class="ctl">
           <label class="lbl" for="fontfamily" data-i18n="l.fontfamily">汉字字体</label>
           <select id="fontfamily">
-            <option value='"KaiTi","STKaiti","楷体","Kaiti SC",serif' data-i18n="f.kai">楷体（更接近教材）</option>
-            <option value='"LXGW WenKai GB","KaiTi","STKaiti","楷体",serif' data-i18n="f.lxgw">霞鹜文楷 GB（简体·网络字体）</option>
-            <option value='"LXGWWenKaiTC","Iansui","KaiTi","STKaiti","楷体",serif' data-i18n="f.wenkaitc" class="wf-opt">霞鹜文楷 TC（繁体·网络字体）</option>
-            <option value='"Iansui","KaiTi","STKaiti","楷体",serif' data-i18n="f.iansui" class="wf-opt">芫荽 Iansui（繁体·网络字体）</option>
+            <option value='"KaiTi","STKaiti","楷体","Kaiti SC",serif' data-i18n="f.kai">楷体（像课本）</option>
+            <option value='"LXGW WenKai GB","KaiTi","STKaiti","楷体",serif' data-i18n="f.lxgw">霞鹜文楷 GB（在线·简）</option>
+            <option value='"LXGWWenKaiTC","Iansui","KaiTi","STKaiti","楷体",serif' data-i18n="f.wenkaitc" class="wf-opt">霞鹜文楷 TC（在线·繁）</option>
+            <option value='"Iansui","KaiTi","STKaiti","楷体",serif' data-i18n="f.iansui" class="wf-opt">芫荽 Iansui（在线·繁）</option>
             <option value='"SimSun","Songti SC","宋体",serif' data-i18n="f.song">宋体</option>
             <option value='"SimHei","PingFang SC","Microsoft YaHei",sans-serif' data-i18n="f.hei">黑体</option>
           </select>
@@ -589,9 +590,9 @@
         <div class="ctl pyfont-ctl">
           <label class="lbl" for="pyfont" data-i18n="l.pyfont">音标字体</label>
           <select id="pyfont">
-            <option value='"AndikaPy",serif' selected data-i18n="pf.andika">Andika拼音字体（免费商用）</option>
-            <option value='"BpmfSubset","Bopomofo","Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif' data-i18n="pf.bpmf">内嵌注音字体 BpmfSubset（ㄅㄆㄇ）</option>
-            <option value='"人教版拼音字体","印氪先生汉语拼音 优化版W4","印氪先生汉语拼音优化版W4","印氪先生汉语拼音 人教版W3","印氪先生汉语拼音人教版W3","KaiTi","STKaiti","楷体",serif' data-i18n="pf.inker">印氪先生拼音字体（更接近教材）</option>
+            <option value='"AndikaPy",serif' selected data-i18n="pf.andika">Andika（免费商用）</option>
+            <option value='"BpmfSubset","Bopomofo","Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif' data-i18n="pf.bpmf">ㄅㄆㄇ 注音字体</option>
+            <option value='"人教版拼音字体","印氪先生汉语拼音 优化版W4","印氪先生汉语拼音优化版W4","印氪先生汉语拼音 人教版W3","印氪先生汉语拼音人教版W3","KaiTi","STKaiti","楷体",serif' data-i18n="pf.inker">印氪先生（像课本）</option>
             <option value="inherit" selected data-i18n="pf.follow">跟随汉字</option>
             <option value='"SimSun","Songti SC","宋体",serif' data-i18n="f.song">宋体</option>
             <option value='"SimHei","PingFang SC","Microsoft YaHei",sans-serif' data-i18n="f.hei">黑体</option>
@@ -599,21 +600,21 @@
           </select>
         </div>
         <div class="ctl pyfont-ctl" id="seg-ctl">
-          <label class="lbl" for="seg-group" data-i18n="l.seg">分词方案</label>
+          <label class="lbl" for="seg-group" data-i18n="l.seg">连排方式</label>
           <div class="seg" id="seg-group" role="group">
-            <button type="button" id="seg-smart" data-i18n="seg.smart">智能分词</button>
-            <button type="button" id="seg-reverse" data-i18n="seg.reverse">逆向匹配</button>
+            <button type="button" id="seg-smart" data-i18n="seg.smart">按词连排</button>
+            <button type="button" id="seg-reverse" data-i18n="seg.reverse">从后匹配</button>
             <button type="button" id="seg-none" class="on" data-i18n="seg.none">逐字注音</button>
           </div>
           <small class="pyfont-hint" id="seg-hint" hidden></small>
         </div>
         <div class="ctl pyfont-ctl" id="ph-ctl">
-          <label class="lbl" for="ph-scheme" data-i18n="ph.lbl">音标</label>
+          <label class="lbl" for="ph-scheme" data-i18n="ph.lbl">音标方案</label>
           <select id="ph-scheme" aria-label="音标方案" data-i18n-aria="ph.lbl"></select>
         </div>
         <div class="ctl pyfont-ctl" id="wgs-tone-ctl" hidden>
-          <label class="lbl" data-i18n="wgs.tone.lbl">简式声调</label>
-          <div class="seg" role="group" aria-label="威妥玛简式声调" data-i18n-aria="wgs.tone.lbl">
+          <label class="lbl" data-i18n="wgs.tone.lbl">声调</label>
+          <div class="seg" role="group" aria-label="声调" data-i18n-aria="wgs.tone.lbl">
             <button type="button" id="wgs-tone-on" class="on" data-i18n="wgs.tone.num">数字</button>
             <button type="button" id="wgs-tone-off" data-i18n="wgs.tone.none">不标</button>
           </div>
@@ -626,8 +627,8 @@
           </div>
         </div>
         <div class="ctl pyfont-ctl" id="cyr-tone-ctl" hidden>
-          <label class="lbl" data-i18n="cyr.tone.lbl">西里尔声调</label>
-          <div class="seg" role="group" aria-label="西里尔转写声调" data-i18n-aria="cyr.tone.lbl">
+          <label class="lbl" data-i18n="cyr.tone.lbl">声调</label>
+          <div class="seg" role="group" aria-label="声调" data-i18n-aria="cyr.tone.lbl">
             <button type="button" id="cyr-tone-on" class="on" data-i18n="cyr.tone.num">数字</button>
             <button type="button" id="cyr-tone-off" data-i18n="cyr.tone.none">不标</button>
           </div>
@@ -655,12 +656,12 @@
           <span class="val" id="paragap-val">12px</span>
         </div>
         <div class="ctl">
-          <label class="lbl" data-i18n="l.showpy">音标显示</label>
-          <label class="check"><input type="checkbox" id="show-py" checked> <span data-i18n="ck.showpy">在汉字上方显示音标</span></label>
+          <label class="lbl" data-i18n="l.showpy">音标</label>
+          <label class="check"><input type="checkbox" id="show-py" checked> <span data-i18n="ck.showpy">显示</span></label>
         </div>
         <div class="ctl">
-          <label class="lbl" data-i18n="l.hi">易错点高亮</label>
-          <label class="check"><input type="checkbox" id="hi-toggle"> <span data-i18n="ck.hi">底纹标出多音字、儿化、的地得、一 / 不、轻声等易错字</span></label>
+          <label class="lbl" data-i18n="l.hi">易错字</label>
+          <label class="check"><input type="checkbox" id="hi-toggle"> <span data-i18n="ck.hi">用底色标出多音字、儿化、的 / 地 / 得、一 / 不、轻声</span></label>
         </div>
       </div>
       <button type="button" id="btn-more-toggle" data-i18n-title="b.more.title" title="展开 / 收起低频设置（浏览器会记住展开状态）" data-i18n="more.expand">更多设置 ▸</button>
@@ -668,11 +669,11 @@
       <div class="control-group">
         <div class="ctl pyfont-ctl">
           <label class="lbl" data-i18n="l.localfont">本地字体</label>
-          <label class="check"><input type="checkbox" id="allfonts-toggle"> <span data-i18n="ck.allfonts">列出本机全部已安装字体</span></label>
-          <small class="pyfont-hint" data-i18n="allfonts.hint">默认只显示常用字体，避免下拉列表过长；勾选后需较新版本的 Chrome / Edge，首次使用时浏览器会请求「字体访问」权限。</small>
+          <label class="check"><input type="checkbox" id="allfonts-toggle"> <span data-i18n="ck.allfonts">列出本机所有字体</span></label>
+          <small class="pyfont-hint" data-i18n="allfonts.hint">默认只列常用字体。读取本机字体只有电脑版 Chrome / Edge 支持，第一次勾选时会问你是否允许。</small>
         </div>
         <div class="ctl pyfont-ctl">
-          <label class="lbl" data-i18n="l.ts">「一 / 不」变调</label>
+          <label class="lbl" data-i18n="l.ts">一/不变调</label>
           <div class="seg" role="group" aria-label="一不变调标注方式" data-i18n-aria="ts.aria">
             <button id="ts-on" class="on" type="button" data-i18n="ts.on">标变调</button>
             <button id="ts-off" type="button" data-i18n="ts.off">标本调</button>
@@ -699,13 +700,13 @@
         <div class="ctl">
           <label class="lbl" data-i18n="l.erhua">儿化音</label>
           <div class="seg" role="group" aria-label="儿化音标注方式" data-i18n-aria="eh.aria">
-            <button id="erhua-char" class="on" type="button" data-i18n="eh.char">逐字注音</button>
-            <button id="erhua-merge" type="button" data-i18n="eh.merge">标准拼音</button>
+            <button id="erhua-char" class="on" type="button" data-i18n="eh.char">分开标</button>
+            <button id="erhua-merge" type="button" data-i18n="eh.merge">合并标</button>
           </div>
         </div>
         <div class="ctl">
           <label class="lbl" data-i18n="l.pfooter">打印页脚</label>
-          <label class="check"><input type="checkbox" id="print-footer" checked> <span data-i18n="ck.pfooter">页脚显示「本地运行 · 内容不上传」</span></label>
+          <label class="check"><input type="checkbox" id="print-footer" checked> <span data-i18n="ck.pfooter">显示「本地运行 · 内容不上传」</span></label>
         </div>
       </div>
       <div class="ctl" style="margin-top:14px;">
@@ -714,21 +715,21 @@
         <button id="btn-engine-check" type="button" style="padding:3px 10px;font-size:12px;" data-i18n="b.engcheck">检查更新</button>
       </div>
       <p class="hint" id="engine-tip" style="display:none;margin-top:8px;"></p>
-      <p class="hint" data-i18n="tip.hint">小提示：在预览区里<b>点击任意生字</b>可手动修改读音（轻声和助词读音如 zi / de / zhe 也会出现在候选里）；点「儿」字可强制指定儿化或非儿化。勾选「易错点高亮」可快速定位需要检查的字。「进入阅读模式」会隐藏编辑区，方便直接把设备递给小朋友。</p>
+      <p class="hint" data-i18n="tip.hint">小提示：点预览里任意一个字可以换读音（轻声、助词读音都在候选里）；点「儿」字决定儿化还是单独读。勾「易错字」能快速找出该核对的地方。「阅读模式」会收起编辑区，把设备直接递给孩子。</p>
       </div>
     </section>
   </div>
 
   <section class="card preview-col">
     <div class="preview-head">
-      <h2 data-i18n="pv.h2">音标预览</h2>
+      <h2 data-i18n="pv.h2">预览</h2>
       <div class="page-nav" id="page-nav">
         <span class="pg-page-controls" id="pg-controls">
           <button id="pg-prev" type="button" data-i18n="pg.prev">← 上一页</button>
           <span class="pg-label" id="pg-label">1 / 1 页</span>
           <button id="pg-next" type="button" data-i18n="pg.next">下一页 →</button>
         </span>
-        <span class="pg-mode seg" id="pg-mode" role="group" aria-label="翻页方式" data-i18n-aria="nav.lbl">
+        <span class="pg-mode seg" id="pg-mode" role="group" aria-label="预览方式" data-i18n-aria="nav.lbl">
           <button id="nav-mode-page" type="button" data-i18n="nav.page">翻页</button>
           <button id="nav-mode-scroll" type="button" data-i18n="nav.scroll">连续滚动</button>
         </span>
@@ -736,10 +737,10 @@
       </div>
     </div>
     <div id="pages-wrap">
-      <div id="preview" aria-live="polite"><div class="paper"><div class="pg-content"><p class="empty-tip" data-i18n="empty.tip">在左侧输入文章后，音标预览会显示在这里</p></div></div></div>
+      <div id="preview" aria-live="polite"><div class="paper"><div class="pg-content"><p class="empty-tip" data-i18n="empty.tip">贴好文章，拼音就显示在这里</p></div></div></div>
     </div>
     <div id="limit-tip" class="limit-tip" style="display:none"></div>
-    <p class="pv-note" data-i18n="pv.note">多音字读音由引擎自动判断：不同版本内嵌词典不同，正确率也不同（完整词典版最高），且任何版本都无法保证 100% 正确。用于教学请勾选「易错点高亮」逐字核对，发现错误点击预览中对应的字即可改为正确读音。</p>
+    <p class="pv-note" data-i18n="pv.note">拼音由引擎自动判断：不同版本词典不同，准确率也不同（完整词典版最高），都做不到 100%。教学前建议勾「易错字」过一遍，有疑问的字点一下就能改读音。</p>
   </section>
 </main>
 
@@ -753,17 +754,16 @@
     </h2>
     <div id="help-body">
     <ol>
-      <li data-i18n="help.li1">把文章粘贴进左侧输入框，或点「导入 TXT」选择 txt 文件（自动识别 UTF-8 / GBK 编码）；点击预览中的生字可手动改读音，轻声 / 助词读音（子 zi、地 de、着 zhe 等）已收录候选，常见轻声词（豆子、椅子、高兴地等）自动标注；调好后点「保存样式」存为下次打开的默认值（仅保存在本浏览器，清除浏览器数据后恢复默认）；</li>
-      <li data-i18n="help.li2">音标字体：拼音模式默认用内置 Andika（免费商用），也可选更接近教材的「印氪先生拼音字体」，或勾选「列出本机全部已安装字体」从本机字体里挑（需较新版本的 Chrome / Edge 并允许「字体访问」权限）；注音模式默认用内嵌的 ㄅㄆㄇ 字体 BpmfSubset——手动选过其他字体后不再自动切换；</li>
-      <li data-i18n="help.li3">「分词方案」选「智能分词」时按内置约 3 万词词典把词组连排、整词标注（如 银行 yín háng）；机器切错时点击生字，可在弹窗里断词 / 合词手动修正；</li>
-      <li data-i18n="help.li4">预览按 A4 纸宽高自动分页、所见即所印，「翻页 / 连续滚动」随时切换（手机等窄屏自动连续排版）；点「打印 / 导出 PDF」即可输出全部页面；</li>
-      <li data-i18n="help.li5">点「进入阅读模式」隐藏编辑区，方便把设备直接递给小朋友，←→ 方向键也能翻页；</li>
-      <li data-i18n="help.li6">「复制内容及音标」支持五种格式：富文本（直接粘贴进 Word）、HTML ruby 标签、HTML+CSS 注音（网页源码，横排 / 直排都与预览一致，可配网络字体；直排配「注音芫荽」字体时读音以 IVS 写入文字）、字「音标」逐字对照、只复制音标（含标点）。Word 对注音声调定位的支持有限，富文本中注音为横排、声调符号缀在符号末尾，需要精确排版请用后两种格式粘贴进网页；</li>
-      <li data-i18n="help.li7">「儿化音」支持逐字注音（花儿 huā er）与标准拼音（花儿 huār）两种方式，自动判断不准时点「儿」字手动指定；勾选「易错点高亮」会用底纹标出多音字、的地得、一 / 不变调、常见轻声字，方便快速核对；拼音引擎已内嵌、离线可用，联网时会自动同步上游更新；</li>
-      <li data-i18n="help.li8">关于粤语注音：粤拼等标音方案的标准较为混乱，暂未找到权威的教学标准和可用的开源库，本工具暂时只支持汉语拼音与注音符号；欢迎香港的朋友提供权威参考资料或推荐可用方案；</li>
-      <li data-i18n="help.li9">阅读模式底部新增跟读工具条：逐句高亮、自动滚动、语音朗读与麦克风跟读，并记住上次读到的位置；点阅读模式中的字可直接跳到该句。语音朗读使用浏览器内置 Web Speech API；麦克风跟读依赖浏览器语音识别服务，可能联网处理音频，介意时请勿开启。</li>
+      <li data-i18n="help.li1"><b>贴文章</b>：粘贴到输入框，或点「导入 TXT」选文件（自动识别 UTF-8 / GBK）。超过 3 万字会自动进入长文模式，最多 200 万字，编辑框变成只读，点「退出长文模式」可回到编辑。</li>
+      <li data-i18n="help.li2"><b>选音标</b>：「音标方案」有九种——汉语拼音、通用拼音、耶鲁、威妥玛严式 / 简式、注音、注音二式、国语罗马字、西里尔转写。只换写法，读音不变；威妥玛简式和西里尔还能选「数字 / 不标」。</li>
+      <li data-i18n="help.li3"><b>调排版</b>：字号、字体、音标字体随时换；「拼音位置」可放字上方或右侧（注音模式是「横排 / 直排」）；字距、行距、段距拖动即生效。改乱了点「恢复默认」。</li>
+      <li data-i18n="help.li4"><b>查读音</b>：勾「易错字」会用底色标出多音字、儿化、的 / 地 / 得、一 / 不、轻声；点预览里任意一个字可换读音，轻声和助词读音都在候选里；点「儿」字可决定儿化还是单独读。</li>
+      <li data-i18n="help.li5"><b>打印</b>：预览按 A4 自动分页，所见即所印；「打印 / PDF」一次输出全部页。长文模式会先问打印哪几页，也可以分批打印（每批 100 页）再合成一个 PDF，全程在本机完成。</li>
+      <li data-i18n="help.li6"><b>复制</b>：「复制」有五种格式——粘贴到 Word、网页 ruby 标签、网页注音（HTML+CSS）、字-音标对照、只复制音标。</li>
+      <li data-i18n="help.li7"><b>给孩子读</b>：点「阅读模式」收起编辑区，方向键翻页；底部工具条可逐句高亮、朗读、麦克风跟读（实验），下次进来接着读。</li>
+      <li data-i18n="help.li8"><b>界面与读音</b>：右上角切简体 / 繁体 / English；「更多设置」里可换台湾读音、把文章转成繁体（完整词典版和注音版）、列出本机字体、检查拼音引擎更新。</li>
     </ol>
-    <p class="privacy" data-i18n="help.privacy">内容安全说明：全部注音转换都在您自己的浏览器里完成，文章内容不会上传到任何服务器，可以放心处理校内稿件。「一 / 不」默认按语流中的实际读音标注变调（一个 yí gè），如需与词典中的本调一致，可切换为「标本调」（一个 yī gè）。「检查更新」仅联网获取拼音引擎的新版本，不会上传文章内容。</p>
+    <p class="privacy" data-i18n="help.privacy">全部处理都在你自己的浏览器里完成，文章不会上传。只有「检查更新」「在线字体」和第一次「合并 PDF」会联网，都不涉及文章内容。麦克风跟读用浏览器自带的语音识别，音频可能由浏览器厂商处理，介意就别开。</p>
     </div>
   </div>
 </section>
@@ -778,7 +778,7 @@
 <div id="print-dlg" hidden>
   <div class="dlg-mask" id="pd-mask"></div>
   <div class="dlg-box">
-    <h3 data-i18n="pd.title">打印 / 导出 PDF（长文模式）</h3>
+    <h3 data-i18n="pd.title">打印 / 导出 PDF（长文）</h3>
     <div class="dlg-row">
       <span data-i18n="pd.range">打印范围</span>
       <input type="number" id="pd-from" min="1" step="1" aria-label="起始页"> <span>–</span>
@@ -786,9 +786,9 @@
       <span id="pd-total" style="color:var(--ink-soft)"></span>
     </div>
     <div class="dlg-btns">
-      <button class="primary" id="pd-go" data-i18n="pd.go">打印所选范围</button>
-      <button id="pd-all" data-i18n="pd.all">分批打印全书（每批 100 页）</button>
-      <button id="pd-merge" data-i18n="pd.merge">合并 PDF 文件…（按文件名排序）</button>
+      <button class="primary" id="pd-go" data-i18n="pd.go">打印这些页</button>
+      <button id="pd-all" data-i18n="pd.all">分批打印（每批 100 页）</button>
+      <button id="pd-merge" data-i18n="pd.merge">合并 PDF…</button>
       <button id="pd-cancel" data-i18n="pd.cancel">取消</button>
     </div>
     <p class="dlg-hint" data-i18n="pd.hint">长文分批打印：每批在打印对话框中「另存为 PDF」保存为一个文件，关闭对话框后会自动弹出下一批；全部保存后点「合并 PDF 文件」，按文件名顺序合并成一个 PDF（全程本地完成，不上传）。</p>
@@ -799,8 +799,8 @@
 <!-- 选择拼音字体但本地未安装时的提示条 -->
 <div id="pyfont-toast" hidden>
   <button type="button" id="pyfont-toast-close" title="关闭" data-i18n-title="a.close">×</button>
-  <strong data-i18n="pt.title">还没有安装「印氪先生汉语拼音」拼音字体</strong>
-  <p data-i18n="pt.p1">当前拼音暂时以楷体显示。楷体、宋体等常见中文字体里的拼音是普通拉丁字母（双层 a），不是教材拼音写法；用于教学场景，建议安装专门的拼音字体。</p>
+  <strong data-i18n="pt.title">没有安装「印氪先生拼音字体」</strong>
+  <p data-i18n="pt.p1">现在暂时用楷体显示拼音。楷体里的拼音是普通英文字母（双层 a），不是课本写法；给孩子用，建议装一套专门的拼音字体。手机 / 平板装不了字体，换回「Andika」就好。</p>
   <p><a href="https://tjsky.lanzouq.com/i2O0y48swrgb" target="_blank" rel="noopener"><span data-i18n="pt.dl">下载：印氪先生汉语拼音优化版W4.zip（蓝奏云）</span></a> · <span data-i18n="pt.author">字体作者：</span><a href="https://www.zhihu.com/people/zou-wen-biao" target="_blank" rel="noopener">印氪先生（知乎）</a></p>
   <p data-i18n="pt.steps">安装步骤：下载 → 解压 → 双击 <b>印氪先生汉语拼音优化版W4-Regular-1.001.ttf</b> → 点左上角「安装」。安装后需<b>完全退出并重启浏览器</b>（仅刷新页面无效），再点下方「重新检测」。</p>
   <p><button type="button" id="pyfont-recheck" data-i18n="pt.recheck">重新检测</button> <span id="pyfont-recheck-status" hidden></span></p>
@@ -876,11 +876,11 @@ var I18N = {
     "hd.title": "拼音注音小助手<span class=\"dot\"> · </span>為文章加上拼音或注音",
     "hd.sub": "貼上或匯入文章 → 一鍵注音 → 翻頁閱讀 → 列印或匯出 PDF",
     "sw.aria": "介面語言",
-    "in.h2": "原文輸入區",
-    "in.ph": "在這裡貼上或輸入文章內容，支援多段落；也可以點擊下方「匯入 TXT」……",
+    "in.h2": "輸入文章",
+    "in.ph": "把文章貼到這裡，可以多段；也可以點「匯入 TXT」選檔案。",
     "in.aria": "文章輸入區",
     "b.import": "匯入 TXT",
-    "b.sample": "填入範例文章",
+    "b.sample": "範例文章",
     "b.clear": "清空",
     "b.t2s": "轉為簡體", "b.s2t": "轉為繁體",
     "cv.t2s": "把輸入框全文轉成簡體（OpenCC）", "cv.s2t": "把輸入框全文轉成繁體（OpenCC）",
@@ -891,49 +891,49 @@ var I18N = {
     "ck.ocph": "同時轉換常用詞彙",
     "ck.ocph.tip": "勾選後把地區常用詞一併轉換（滑鼠、軟體等）",
     "cv.doing": "轉換中…", "cv.fail": "轉換引擎載入失敗，請重新整理頁面再試。",
-    "b.print": "列印 / 匯出 PDF",
-    "b.read": "進入閱讀模式",
-    "b.copy": "複製內容及音標",
+    "b.print": "列印 / PDF",
+    "b.read": "閱讀模式",
+    "b.copy": "複製",
     "copy.aria": "複製格式",
-    "fmt.word": "富文本（Word）",
-    "fmt.ruby": "HTML ruby 標籤",
-    "fmt.pair": "字「音標」對照",
-    "fmt.py": "只複製音標（含標點）",
-    "fmt.zyweb": "HTML+CSS 注音（網頁）",
-    "l.zyweb": "網頁字體",
+    "fmt.word": "貼到 Word",
+    "fmt.ruby": "網頁 ruby 標籤",
+    "fmt.pair": "字-音標 對照",
+    "fmt.py": "只複製音標",
+    "fmt.zyweb": "網頁注音（HTML+CSS）",
+    "l.zyweb": "網頁字型",
     "zyweb.none": "不使用（跟隨貼上目標網頁）",
-    "zyweb.iansui": "芫荽 Iansui（emtech 網路字體）",
+    "zyweb.iansui": "芫荽 Iansui（emtech 網路字型）",
     "zyweb.bpmf": "注音芫荽 BpmfIansui（IVS 內建注音）",
-    "zyweb.wenkai": "霞鶩文楷 TC（emtech 網路字體）",
-    "zyweb.hint": "選擇後，複製的原始碼會一併引入對應網路字體（font.emtech.cc 免費提供），貼上目標網頁無需安裝字體。注音芫荽 BpmfIansui 的國字字形內建右側注音（IVS 規格）：直排複製時會把每個字的正確讀音以 IVS 寫進文字、由字型標注；橫排複製時該字體僅用於注音符號，避免與結構標注重複。",
-    "nav.lbl": "翻頁方式",
+    "zyweb.wenkai": "霞鶩文楷 TC（emtech 網路字型）",
+    "zyweb.hint": "選擇後，複製的原始碼會一併引入對應網路字型（font.emtech.cc 免費提供），貼上目標網頁無需安裝字型。注音芫荽 BpmfIansui 的國字字形內建右側注音（IVS 規格）：直排複製時會把每個字的正確讀音以 IVS 寫進文字、由字型標注；橫排複製時該字型僅用於注音符號，避免與結構標注重複。",
+    "nav.lbl": "預覽方式",
     "nav.page": "翻頁",
     "nav.scroll": "連續捲動",
-    "st.h2": "樣式設定區",
-    "b.save": "✓ 儲存樣式",
-    "b.save.title": "將目前樣式儲存為預設：下次開啟自動套用（僅儲存在本瀏覽器的快取中）",
-    "b.reset": "↺ 重設樣式",
-    "b.reset.title": "恢復全部樣式為預設值（字號 28px、楷體、跟隨漢字、逐字注音、間距 2px / 2.3 / 12px 等）",
-    "l.fontsize": "漢字字號",
-    "l.fontfamily": "漢字字體",
-    "f.kai": "楷體（更接近教材）",
-    "f.lxgw": "霞鶩文楷 GB（簡體·網路字型）",
-    "f.wenkaitc": "霞鶩文楷 TC（繁體·網路字型）",
-    "f.iansui": "芫荽 Iansui（繁體·網路字型）",
+    "st.h2": "排版設定",
+    "b.save": "✓ 儲存設定",
+    "b.save.title": "把目前設定存為預設，下次開啟自動套用（只存在這台裝置的瀏覽器裡）",
+    "b.reset": "↺ 恢復預設",
+    "b.reset.title": "全部恢復預設（字號 28px、楷體、音標跟隨漢字、逐字注音、間距 2 / 2.3 / 12）",
+    "l.fontsize": "字號",
+    "l.fontfamily": "漢字字型",
+    "f.kai": "楷體（像課本）",
+    "f.lxgw": "霞鶩文楷 GB（線上·簡）",
+    "f.wenkaitc": "霞鶩文楷 TC（線上·繁）",
+    "f.iansui": "芫荽 Iansui（線上·繁）",
     "f.song": "宋體",
     "f.hei": "黑體",
-    "l.pyfont": "音標字體",
-    "pf.andika": "Andika 拼音字型（免費商用）",
-    "pf.bpmf": "內嵌注音字體 BpmfSubset（ㄅㄆㄇ）",
-    "pf.inker": "印氪先生拼音字型（更接近教材）",
+    "l.pyfont": "音標字型",
+    "pf.andika": "Andika（免費商用）",
+    "pf.bpmf": "ㄅㄆㄇ 注音字型",
+    "pf.inker": "印氪先生（像課本）",
     "pf.follow": "跟隨漢字",
     "pf.round": "圓潤手寫風",
-    "l.seg": "分詞方案",
-    "seg.smart": "智能分詞",
-    "seg.reverse": "逆向匹配",
+    "l.seg": "連排方式",
+    "seg.smart": "按詞連排",
+    "seg.reverse": "從後匹配",
     "seg.none": "逐字注音",
     "l.chargap": "字間距",
-    "ph.lbl": "音標",
+    "ph.lbl": "音標方案",
     "ph.py": "拼音",
     "ph.zy": "注音",
     "ph.tongyong": "通用拼音",
@@ -943,10 +943,10 @@ var I18N = {
     "ph.mps2": "注音二式",
     "ph.gr": "國語羅馬字",
     "ph.cyr": "西里爾轉寫",
-    "cyr.tone.lbl": "西里爾聲調",
+    "cyr.tone.lbl": "聲調",
     "cyr.tone.num": "數字",
     "cyr.tone.none": "不標",
-    "wgs.tone.lbl": "簡式聲調",
+    "wgs.tone.lbl": "聲調",
     "wgs.tone.num": "數字",
     "wgs.tone.none": "不標",
     "wgs.u.lbl": "ü 寫法",
@@ -956,17 +956,17 @@ var I18N = {
     "zydir.v": "直排",
     "l.lineh": "行間距",
     "l.paragap": "段間距",
-    "l.showpy": "音標顯示",
-    "ck.showpy": "在漢字上方顯示音標",
-    "l.hi": "易錯點高亮",
-    "ck.hi": "底紋標出多音字、兒化、的地得、一 / 不、輕聲等易錯字",
+    "l.showpy": "音標",
+    "ck.showpy": "顯示",
+    "l.hi": "易錯字",
+    "ck.hi": "用底色標出多音字、兒化、的 / 地 / 得、一 / 不、輕聲",
     "more.expand": "更多設定 ▸",
     "more.collapse": "收起設定 ▴",
     "b.more.title": "展開 / 收起低頻設定（瀏覽器會記住展開狀態）",
-    "l.localfont": "本地字體",
-    "ck.allfonts": "列出本機全部已安裝字型",
-    "allfonts.hint": "預設只顯示常用字型，避免下拉選單過長；勾選後需較新版本的 Chrome / Edge，首次使用時瀏覽器會請求「字型存取」權限。",
-    "l.ts": "「一 / 不」變調",
+    "l.localfont": "本地字型",
+    "ck.allfonts": "列出本機所有字型",
+    "allfonts.hint": "預設只列常用字型。讀取本機字型只有電腦版 Chrome / Edge 支援，第一次勾選時會問你是否允許。",
+    "l.ts": "一/不變調",
     "l.rdstd": "讀音標準",
     "rs.aria": "讀音標準",
     "rs.cn": "普通話讀音",
@@ -979,39 +979,39 @@ var I18N = {
     "ts.hint": "「變調」按語流中的實際讀音標註（一個 yí gè）；「本調」按詞典裡的聲調標註（一個 yī gè）。兩者都是規範寫法，只是取捨不同。",
     "l.erhua": "兒化音",
     "eh.aria": "兒化音標註方式",
-    "eh.char": "逐字注音",
-    "eh.merge": "標準拼音",
+    "eh.char": "分開標",
+    "eh.merge": "合併標",
     "l.pfooter": "列印頁尾",
-    "ck.pfooter": "頁尾顯示「本機執行 · 內容不上傳」",
+    "ck.pfooter": "顯示「本機執行 · 內容不上傳」",
     "l.engine": "拼音引擎",
     "b.engcheck": "檢查更新",
-    "tip.hint": "小提示：在預覽區裡<b>點擊任意生字</b>可手動修改讀音（輕聲和助詞讀音如 zi / de / zhe 也會出現在候選裡）；點「兒」字可強制指定兒化或非兒化。勾選「易錯點高亮」可快速定位需要檢查的字。「進入閱讀模式」會隱藏編輯區，方便直接把裝置遞給小朋友。",
-    "pv.h2": "音標預覽",
-    "pv.note": "多音字讀音由引擎自動判斷：不同版本內建詞典不同，正確率也不同（完整詞典版最高），且任何版本都無法保證 100% 正確。用於教學請勾選「易錯點高亮」逐字核對，發現錯誤點擊預覽中對應的字即可改為正確讀音。",
+    "tip.hint": "小提示：點預覽裡任一個字可以換讀音（輕聲、助詞讀音都在候選裡）；點「兒」字決定兒化還是單獨讀。勾「易錯字」能快速找出該核對的地方。「閱讀模式」會收起編輯區，把裝置直接交給孩子。",
+    "pv.h2": "預覽",
+    "pv.note": "拼音由引擎自動判斷：不同版本詞典不同，準確率也不同（完整詞典版最高），都做不到 100%。教學前建議勾「易錯字」過一遍，有疑問的字點一下就能改讀音。",
     "pg.prev": "← 上一頁",
     "pg.next": "下一頁 →",
     "pv.mobilehint": "螢幕較窄，已自動採用連續排版，上下滑動即可閱讀",
-    "empty.tip": "在左側輸入文章後，音標預覽會顯示在這裡",
+    "empty.tip": "貼好文章，拼音就顯示在這裡",
     "help.h2": "怎麼用",
     "b.help.title": "摺疊 / 展開使用說明",
     "help.collapse": "▸ 收起",
     "help.expand": "▾ 展開怎麼用",
-    "help.li1": "把文章貼進左側輸入框，或點「匯入 TXT」選擇 txt 檔案（自動辨識 UTF-8 / GBK 編碼）；點擊預覽中的生字可手動改讀音，輕聲 / 助詞讀音（子 zi、地 de、著 zhe 等）已收錄候選，常見輕聲詞（豆子、椅子、高興地等）自動標註；調好後點「儲存樣式」存為下次開啟的預設值（僅儲存在本瀏覽器，清除瀏覽器資料後恢復預設）；",
-    "help.li2": "音標字體：拼音模式預設用內建 Andika（免費商用），也可選更接近教材的「印氪先生拼音字體」，或勾選「列出本機全部已安裝字型」從本機字型裡挑（需較新版本的 Chrome / Edge 並允許「字體存取」權限）；注音模式預設用內嵌的 ㄅㄆㄇ 字型 BpmfSubset——手動選過其他字型後不再自動切換；",
-    "help.li3": "「分詞方案」選「智能分詞」時按內建約 3 萬詞詞典把詞組連排、整詞標註（如 銀行 yín háng）；機器切錯時點擊生字，可在彈窗裡斷詞 / 合詞手動修正；",
-    "help.li4": "預覽按 A4 紙寬高自動分頁、所見即所印，「翻頁 / 連續捲動」隨時切換（手機等窄螢幕自動連續排版）；點「列印 / 匯出 PDF」即可輸出全部頁面；",
-    "help.li5": "點「進入閱讀模式」隱藏編輯區，方便把裝置直接遞給小朋友，←→ 方向鍵也能翻頁；",
-    "help.li6": "「複製內容及音標」支援五種格式：富文本（直接貼進 Word）、HTML ruby 標籤、HTML+CSS 注音（網頁原始碼，橫排 / 直排都與預覽一致，可配網路字體；直排配「注音芫荽」字型時讀音以 IVS 寫入文字）、字「音標」逐字對照、只複製音標（含標點）。Word 對注音聲調定位的支援有限，富文本中注音為橫排、聲調符號綴在符號末尾，需要精確排版請用後兩種格式貼進網頁；",
-    "help.li7": "「兒化音」支援逐字注音（花兒 huā er）與標準拼音（花兒 huār）兩種方式，自動判斷不準時點「兒」字手動指定；勾選「易錯點高亮」會用底紋標出多音字、的地得、一 / 不變調、常見輕聲字，方便快速核對；拼音引擎已內嵌、離線可用，連網時會自動同步上游更新；",
-    "help.li8": "關於粵語注音：粵拼等標音方案的標準較為混亂，暫未找到權威的教學標準和可用的開源程式庫，本工具暫時只支援漢語拼音與注音符號；歡迎香港的朋友提供權威參考資料或推薦可用方案；",
-    "help.privacy": "內容安全說明：全部注音轉換都在您自己的瀏覽器裡完成，文章內容不會上傳到任何伺服器，可以放心處理校內稿件。「一 / 不」預設按語流中的實際讀音標註變調（一個 yí gè），如需與詞典中的本調一致，可切換為「標本調」（一個 yī gè）。「檢查更新」僅連網取得拼音引擎的新版本，不會上傳文章內容。",
+    "help.li1": "<b>貼文章</b>：貼到輸入框，或點「匯入 TXT」選檔案（自動辨識 UTF-8 / GBK）。超過 3 萬字會自動進入長文模式，最多 200 萬字，編輯框變成唯讀，點「退出長文模式」可回到編輯。",
+    "help.li2": "<b>選音標</b>：「音標方案」有九種——漢語拼音、通用拼音、耶魯、威妥瑪嚴式 / 簡式、注音、注音二式、國語羅馬字、西里爾轉寫。只換寫法，讀音不變；威妥瑪簡式和西里爾還能選「數字 / 不標」。",
+    "help.li3": "<b>調排版</b>：字號、字型、音標字型隨時換；「拼音位置」可放字上方或右側（注音模式是「橫排 / 直排」）；字距、行距、段距拖動即生效。改亂了點「恢復預設」。",
+    "help.li4": "<b>查讀音</b>：勾「易錯字」會用底色標出多音字、兒化、的 / 地 / 得、一 / 不、輕聲；點預覽裡任一個字可換讀音，輕聲和助詞讀音都在候選裡；點「兒」字可決定兒化還是單獨讀。",
+    "help.li5": "<b>列印</b>：預覽按 A4 自動分頁，所見即所印；「列印 / PDF」一次輸出全部頁。長文模式會先問列印哪幾頁，也可以分批列印（每批 100 頁）再合成一個 PDF，全程在本機完成。",
+    "help.li6": "<b>複製</b>：「複製」有五種格式——貼到 Word、網頁 ruby 標籤、網頁注音（HTML+CSS）、字-音標對照、只複製音標。",
+    "help.li7": "<b>給孩子讀</b>：點「閱讀模式」收起編輯區，方向鍵翻頁；底部工具列可逐句高亮、朗讀、麥克風跟讀（實驗），下次進來接著讀。",
+    "help.li8": "<b>介面與讀音</b>：右上角切簡體 / 繁體 / English；「更多設定」裡可換臺灣讀音、把文章轉成繁體（完整詞典版和注音版）、列出本機字型、檢查拼音引擎更新。",
+    "help.privacy": "全部處理都在你自己的瀏覽器裡完成，文章不會上傳。只有「檢查更新」「線上字型」和第一次「合併 PDF」會連網，都不涉及文章內容。麥克風跟讀用瀏覽器內建的語音辨識，音訊可能由瀏覽器廠商處理，介意就別開。",
     "ft.brand": "漢語拼音注音小助手",
     "ft.tag": "本機執行 · 文章內容不上傳",
     "ft.eng": " · 拼音引擎 pinyin-pro",
     "ft.lic": "推薦拼音字型「印氪先生漢語拼音」需自行安裝，僅限非商業場景使用，如需商用請聯絡作者 <a href=\"https://www.zhihu.com/people/zou-wen-biao\" target=\"_blank\" rel=\"noopener\">印氪先生</a> 購買授權（本工具程式碼中不含字型檔案）",
     "a.close": "關閉",
-    "pt.title": "還沒有安裝「印氪先生漢語拼音」拼音字型",
-    "pt.p1": "目前拼音暫以楷體顯示。楷體、宋體等常見中文字型裡的拼音是普通拉丁字母（雙層 a），不是教材拼音寫法；用於教學場景，建議安裝專門的拼音字型。",
+    "pt.title": "沒有安裝「印氪先生拼音字型」",
+    "pt.p1": "目前暫時用楷體顯示拼音。楷體裡的拼音是普通英文字母（雙層 a），不是課本寫法；給孩子用，建議裝一套專門的拼音字型。手機 / 平板裝不了字型，換回「Andika」就好。",
     "pt.dl": "下載：印氪先生漢語拼音優化版W4.zip（藍奏雲）",
     "pt.author": "字型作者：",
     "pt.steps": "安裝步驟：下載 → 解壓縮 → 雙擊 <b>印氪先生漢語拼音優化版W4-Regular-1.001.ttf</b> → 點左上角「安裝」。安裝後需<b>完全結束並重新啟動瀏覽器</b>（僅重新整理頁面無效），再點下方「重新偵測」。",
@@ -1052,17 +1052,16 @@ var I18N = {
     "rd.micError": "跟讀辨識出錯，請重試。",
     "rd.micConfirm": "麥克風跟讀由瀏覽器內建的語音辨識服務處理，音訊可能會傳送到瀏覽器或系統廠商的伺服器（本工具仍然不會收到您的文章內容）。確定開啟嗎？",
     "rd.micCancelled": "已取消開啟麥克風跟讀。",
-    "help.li9": "閱讀模式底部新增跟讀工具列：逐句高亮、自動捲動、語音朗讀與麥克風跟讀，並記住上次讀到的位置；點閱讀模式中的字可直接跳到該句。語音朗讀使用瀏覽器內建 Web Speech API；麥克風跟讀依賴瀏覽器語音辨識服務，可能連網處理音訊，介意時請勿開啟。",
     "lm.excerpt": "（長文模式：全文 {n} 字已載入，點擊下方「退出長文模式」可恢復編輯）",
     "lm.max": "單次最多支援 200 萬字，已只載入前 200 萬字。",
     "lm.wait": "正在排版，請稍候…",
     "lm.done": "長文模式：共 {n} 字 · 共 {p} 頁",
     "lm.prog": "長文模式：共 {n} 字 · 已排版 {p} 頁（預計約 {e} 頁）",
-    "pd.title": "列印 / 匯出 PDF（長文模式）",
+    "pd.title": "列印 / 匯出 PDF（長文）",
     "pd.range": "列印範圍",
-    "pd.go": "列印所選範圍",
-    "pd.all": "分批列印全書（每批 100 頁）",
-    "pd.merge": "合併 PDF 檔案…（按檔名排序）",
+    "pd.go": "列印這幾頁",
+    "pd.all": "分批列印（每批 100 頁）",
+    "pd.merge": "合併 PDF…",
     "pd.cancel": "取消",
     "pd.hint": "長文分批列印：每批在列印對話框中「另存為 PDF」儲存為一個檔案，關閉對話框後會自動彈出下一批；全部儲存後點「合併 PDF 檔案」，按檔名順序合併成一個 PDF（全程本機完成，不上傳）。",
     "pd.errRange": "頁碼範圍無效",
@@ -1075,10 +1074,10 @@ var I18N = {
     "pd.mergeFail": "合併失敗：請確認已連網（首次需載入合併元件）且所選檔案為 PDF。",
     "pop.erh.merge": "前字加 r（兒化：huār）",
     "pop.erh.char": "兒單獨注音（非兒化：huā ér）",
-    "pop.cut": "在此字前斷詞",
-    "pop.uncut": "取消此字前斷詞",
-    "pop.join": "與後一字連成詞",
-    "pop.unjoin": "取消與後一字連詞",
+    "pop.cut": "從這個字起分開",
+    "pop.uncut": "併回前一個字",
+    "pop.join": "和後一個字連起來",
+    "pop.unjoin": "和後一個字分開",
     "pop.reset": "恢復預設讀音",
     "a.tooBig": "檔案超過 2MB，請拆分後再匯入。",
     "a.encoding": "無法識別檔案編碼，請將 txt 另存為 UTF-8 或 ANSI 編碼後再匯入。",
@@ -1090,7 +1089,7 @@ var I18N = {
     "a.fontEnumDenied": "您拒絕了「字型存取」權限，已取消勾選。可重新勾選後授權，或繼續使用上方常用字型。",
     "a.fontEnumErr": "列舉本機字型失敗，已取消勾選。",
     "seg.decompressFail": "目前瀏覽器不支援解壓縮分詞詞典（需較新版本的 Chrome / Edge / Firefox / Safari），已回退為逐字注音。",
-    "a.styleSaved": "已儲存目前樣式，下次開啟會自動套用。\n（僅儲存在本瀏覽器的快取中：清除瀏覽器資料後會恢復預設，不同裝置之間不同步。）",
+    "a.styleSaved": "已儲存，下次開啟自動套用。\\n（只存在這台裝置的瀏覽器裡：清快取會恢復預設，換裝置不同步。）",
     "a.styleSaveFail": "儲存失敗：瀏覽器儲存空間不可用（可能處於無痕模式或已停用儲存）。",
     "fonts.group": "本機已安裝字型",
     "eng.checking": " · 檢查中……",
@@ -1102,14 +1101,14 @@ var I18N = {
     "eng.new": "發現新版拼音引擎 v{v}（目前 v{c}），已快取到本機，<a href=\"#\" id=\"lnk-engine-reload\" style=\"color:var(--accent-dark);\">重新整理頁面</a>後生效。",
     "wf.loading": "正在從雲端載入「{name}」字型檔案，首次使用請稍候；載入完成後會<b>快取在本裝置</b>，再次使用無需重複下載。",
     "cp.noText": "請先輸入文章內容。",
-    "cp.okWord": "已複製全文富文本，可直接貼到 Word。",
+    "cp.okWord": "複製好了，去 Word 裡貼上吧。",
     "cp.fail": "複製失敗，請改用「列印 / 匯出 PDF」。",
     "cp.failRetry": "複製失敗，請重試。",
     "cp.noRich": "目前瀏覽器不支援富文本複製，請改用「列印 / 匯出 PDF」。",
     "cp.okRuby": "已複製全文 HTML ruby 標籤。",
     "cp.okWeb": "已複製 HTML+CSS 注音原始碼，貼進網頁即可得到與預覽一致的注音排版。",
-    "cp.okPair": "已複製全文「字「音標」」對照。",
-    "cp.okPy": "已複製全文音標（保留標點），可直接貼到 Word / 記事本。",
+    "cp.okPair": "複製好了：每行一個字和它的音標。",
+    "cp.okPy": "複製好了：只有音標，標點和分段都保留。",
     "cp.noClip": "目前瀏覽器不支援複製，請改用「列印 / 匯出 PDF」。"
   },
   en: {
@@ -1117,11 +1116,11 @@ var I18N = {
     "hd.title": "Pinyin & Zhuyin Annotator<span class=\"dot\"> · </span>Add pinyin or zhuyin to any text",
     "hd.sub": "Paste or import a text → annotate instantly → read page by page → print or export PDF",
     "sw.aria": "Interface language",
-    "in.h2": "Input",
-    "in.ph": "Paste or type the article here (multiple paragraphs supported); or click \"Import TXT\" below…",
+    "in.h2": "Article",
+    "in.ph": "Paste your article here — multiple paragraphs are fine. Or click “Import TXT” to open a file.",
     "in.aria": "Article input",
     "b.import": "Import TXT",
-    "b.sample": "Sample text",
+    "b.sample": "Sample",
     "b.clear": "Clear",
     "b.t2s": "To Simplified", "b.s2t": "To Traditional",
     "cv.t2s": "Convert the whole text to Simplified (OpenCC)", "cv.s2t": "Convert the whole text to Traditional (OpenCC)",
@@ -1132,49 +1131,49 @@ var I18N = {
     "ck.ocph": "Convert vocabulary",
     "ck.ocph.tip": "Also convert regional vocabulary (滑鼠, 軟體…)",
     "cv.doing": "Converting…", "cv.fail": "Failed to load the conversion engine; please reload the page.",
-    "b.print": "Print / Export PDF",
-    "b.read": "Reading mode",
+    "b.print": "Print / PDF",
+    "b.read": "Read mode",
     "b.copy": "Copy",
     "copy.aria": "Copy format",
-    "fmt.word": "Rich text (Word)",
-    "fmt.ruby": "HTML ruby tags",
-    "fmt.pair": "Char + phonetic pairs",
-    "fmt.py": "Phonetics only (with punctuation)",
-    "fmt.zyweb": "HTML+CSS Zhuyin (for web pages)",
+    "fmt.word": "Paste into Word",
+    "fmt.ruby": "Ruby tags",
+    "fmt.pair": "Character – pinyin",
+    "fmt.py": "Pinyin only",
+    "fmt.zyweb": "Web page (HTML+CSS)",
     "l.zyweb": "Web font",
     "zyweb.none": "None (follow the target page)",
     "zyweb.iansui": "Iansui (emtech web font)",
     "zyweb.bpmf": "BpmfIansui (built-in IVS zhuyin)",
     "zyweb.wenkai": "LXGW WenKai TC (emtech web font)",
     "zyweb.hint": "The copied source code will also load the chosen web font (free service at font.emtech.cc), so the target page needs no local fonts. BpmfIansui draws zhuyin beside each character via built-in IVS glyphs: in vertical layout the correct reading of every character is written into the text as an IVS selector and rendered by the font; in horizontal layout the font is applied to the Bopomofo symbols only to avoid double annotation.",
-    "nav.lbl": "View mode",
+    "nav.lbl": "View",
     "nav.page": "Pages",
     "nav.scroll": "Scroll",
-    "st.h2": "Styles",
-    "b.save": "✓ Save style",
-    "b.save.title": "Save current styles as default; applied automatically next time (stored in this browser only)",
+    "st.h2": "Layout",
+    "b.save": "✓ Save",
+    "b.save.title": "Save these settings as the default for next time (stored in this browser only)",
     "b.reset": "↺ Reset",
-    "b.reset.title": "Restore all style defaults (28px, Kai font, follow-hanzi pinyin, per-character annotation, spacing 2px / 2.3 / 12px, etc.)",
-    "l.fontsize": "Hanzi size",
+    "b.reset.title": "Back to defaults: 28px, Kai, follow Hanzi font, per character, spacing 2 / 2.3 / 12",
+    "l.fontsize": "Size",
     "l.fontfamily": "Hanzi font",
-    "f.kai": "KaiTi (closest to textbooks)",
-    "f.lxgw": "LXGW WenKai GB (SC web font)",
-    "f.wenkaitc": "LXGW WenKai TC (TC web font)",
-    "f.iansui": "Iansui (TC web font)",
+    "f.kai": "Kai (like textbooks)",
+    "f.lxgw": "LXGW WenKai GB (online · simp.)",
+    "f.wenkaitc": "LXGW WenKai TC (online · trad.)",
+    "f.iansui": "Iansui (online · trad.)",
     "f.song": "SongTi (serif)",
     "f.hei": "HeiTi (sans)",
     "l.pyfont": "Phonetic font",
-    "pf.andika": "Andika pinyin font (free, incl. commercial)",
-    "pf.bpmf": "Built-in Bopomofo font BpmfSubset (ㄅㄆㄇ)",
-    "pf.inker": "Inker Pinyin font (closest to textbooks)",
+    "pf.andika": "Andika (free for commercial use)",
+    "pf.bpmf": "Zhuyin font (ㄅㄆㄇ)",
+    "pf.inker": "Inker Pinyin (like textbooks)",
     "pf.follow": "Follow hanzi font",
     "pf.round": "Rounded handwriting",
-    "l.seg": "Word segmentation",
-    "seg.smart": "Smart<br>words",
-    "seg.reverse": "Reverse<br>match",
-    "seg.none": "Per<br>character",
+    "l.seg": "Word spacing",
+    "seg.smart": "By word",
+    "seg.reverse": "Backward",
+    "seg.none": "Per character",
     "l.chargap": "Letter spacing",
-    "ph.lbl": "Phonetics",
+    "ph.lbl": "Notation",
     "ph.py": "Pinyin",
     "ph.zy": "Zhuyin",
     "ph.tongyong": "Tongyong Pinyin",
@@ -1184,10 +1183,10 @@ var I18N = {
     "ph.mps2": "MPS2",
     "ph.gr": "Gwoyeu Romatzyh",
     "ph.cyr": "Cyrillic (Palladius)",
-    "cyr.tone.lbl": "Cyrillic tone",
+    "cyr.tone.lbl": "Tone",
     "cyr.tone.num": "Numbers",
     "cyr.tone.none": "None",
-    "wgs.tone.lbl": "Plain tones",
+    "wgs.tone.lbl": "Tone",
     "wgs.tone.num": "Numbers",
     "wgs.tone.none": "None",
     "wgs.u.lbl": "ü spelling",
@@ -1198,16 +1197,16 @@ var I18N = {
     "l.lineh": "Line spacing",
     "l.paragap": "Paragraph spacing",
     "l.showpy": "Phonetics",
-    "ck.showpy": "Show phonetics above characters",
-    "l.hi": "Highlight tricky spots",
-    "ck.hi": "Shade polyphonic chars, erhua, 的地得, 一/不 sandhi, neutral tone, etc.",
+    "ck.showpy": "Show",
+    "l.hi": "Tricky chars",
+    "ck.hi": "Shade polyphones, erhua, 的/地/得, 一/不, neutral tones",
     "more.expand": "More settings ▸",
     "more.collapse": "Fewer settings ▴",
     "b.more.title": "Expand or collapse less-used options (remembered by the browser)",
     "l.localfont": "Local fonts",
-    "ck.allfonts": "List all fonts installed on this device",
-    "allfonts.hint": "Only common fonts are listed by default to keep the menu short. Requires a recent Chrome / Edge; the browser asks for font-access permission on first use.",
-    "l.ts": "一 / 不 tone sandhi",
+    "ck.allfonts": "List all fonts on this device",
+    "allfonts.hint": "Only common fonts are listed by default. Reading installed fonts works on desktop Chrome / Edge only; the first time you tick this, the browser asks for permission.",
+    "l.ts": "yī/bù sandhi",
     "l.rdstd": "Pronunciation",
     "rs.aria": "Pronunciation standard",
     "rs.cn": "Mandarin",
@@ -1220,39 +1219,39 @@ var I18N = {
     "ts.hint": "\"Sandhi form\" prints the tone actually spoken in context (一个 yí gè); \"Citation tone\" prints the dictionary tone (一个 yī gè). Both are standard — it is only a choice of which one to print.",
     "l.erhua": "Erhua (r-coloring)",
     "eh.aria": "Erhua annotation mode",
-    "eh.char": "Per character",
-    "eh.merge": "Standard (huār)",
+    "eh.char": "Separate",
+    "eh.merge": "Merged",
     "l.pfooter": "Print footer",
-    "ck.pfooter": "Show \"Runs locally · nothing is uploaded\" on printed pages",
+    "ck.pfooter": "Show “runs locally · nothing uploaded”",
     "l.engine": "Pinyin engine",
     "b.engcheck": "Check for updates",
-    "tip.hint": "Tip: in the preview, <b>click any character</b> to adjust its reading (neutral-tone and particle readings like zi / de / zhe are offered too); click 「儿」 to force or forbid erhua. Enable \"Highlight tricky spots\" to quickly find characters worth checking. \"Reading mode\" hides the editor so you can hand the device to a child.",
+    "tip.hint": "Tip: click any character in the preview to change its reading (neutral and particle readings included); click 儿 to choose erhua or a separate syllable. Turn on “Tricky chars” to spot what needs checking. “Read mode” hides the editor so you can hand the device to a child.",
     "pv.h2": "Preview",
-    "pv.note": "Phonetic readings are chosen automatically by the engine: dictionaries differ across editions, so accuracy differs too (highest in the full-dictionary edition) — and no edition can guarantee 100% correctness. For teaching, tick \"Highlight tricky spots\" and check character by character; if a reading is wrong, click that character in the preview to fix it.",
+    "pv.note": "Readings are judged automatically. Dictionaries differ by version, so accuracy does too (Full Dictionary is best) — none is 100%. Before teaching, turn on “Tricky chars”; click any doubtful character to fix its reading.",
     "pg.prev": "← Prev",
     "pg.next": "Next →",
     "pv.mobilehint": "Narrow screen: switched to continuous layout — just scroll to read",
-    "empty.tip": "Your annotated preview will appear here once you enter text on the left",
+    "empty.tip": "Paste an article — pinyin shows up here",
     "help.h2": "How to use",
     "b.help.title": "Collapse / expand this guide",
     "help.collapse": "▸ Hide",
     "help.expand": "▾ Show how to use",
-    "help.li1": "Paste the article into the input box on the left, or click \"Import TXT\" to pick a .txt file (UTF-8 / GBK detected automatically); click any character in the preview to fix its reading — neutral-tone / particle readings (子 zi, 地 de, 着 zhe, …) are in the candidate list, and common neutral-tone words are annotated automatically; \"Save style\" stores current settings as next-time defaults (this browser only);",
-    "help.li2": "Phonetic font: pinyin mode defaults to the built-in Andika (free, incl. commercial); \"Inker Pinyin\" is closer to textbooks, or tick \"List all installed fonts\" to pick device fonts (recent Chrome / Edge plus font-access permission required). Zhuyin mode defaults to the built-in Bopomofo font BpmfSubset — once you pick a font manually, no more automatic switching;",
-    "help.li3": "\"Smart words\" segments text with the built-in ~30k-word dictionary, joining words and annotating them whole (银行 yín háng); if a split is wrong, click the character and break / join words in the popup;",
-    "help.li4": "The preview paginates to A4 automatically — what you see is what prints; \"Pages / Scroll\" is switchable anytime (narrow screens scroll continuously); \"Print / Export PDF\" outputs every page;",
-    "help.li5": "Click \"Reading mode\" to hide the editor and hand the device to your child; the ←→ keys still turn pages;",
-    "help.li6": "\"Copy text with phonetics\" offers five formats: rich text (paste into Word), HTML ruby tags, HTML+CSS Zhuyin (web source code matching the preview in horizontal / vertical layout, optional web fonts; in vertical layout with the BpmfIansui font readings are written as IVS selectors), character + phonetic pairs, and phonetics only. Word has limited support for zhuyin tone positioning, so rich-text zhuyin is horizontal with tones appended; use the latter two formats for precise web layout;",
-    "help.li7": "\"Erhua\" supports per-character (花儿 huā er) and standard pinyin (花儿 huār) modes — click 「儿」 to override; \"Highlight tricky spots\" shades polyphonic characters, 的地得, 一/不 sandhi and neutral tones for quick checking; the engine is embedded and works offline, and syncs upstream updates when online;",
-    "help.li8": "About Cantonese: romanization standards for Cantonese remain fragmented and no authoritative teaching standard or usable open-source library has been found, so this tool supports Hanyu Pinyin and Zhuyin only; suggestions from Hong Kong users are welcome;",
-    "help.privacy": "Privacy: all annotation happens in your own browser; article content is never uploaded to any server, so school materials are safe to process. 一/不 sandhi is annotated as spoken in context by default — switch to \"Citation tone\" for the dictionary form. \"Check for updates\" only fetches new engine versions online; article content is never uploaded.",
+    "help.li1": "<b>Paste</b>: paste into the input box, or click “Import TXT” (UTF-8 / GBK detected automatically). Over 30,000 characters switches to long-text mode (up to 2 million); the editor turns read-only — click “Exit long-text mode” to edit again.",
+    "help.li2": "<b>Pick notation</b>: “Notation” offers nine systems — Hanyu Pinyin, Tongyong, Yale, Wade-Giles (strict / plain), Zhuyin, MPS2, Gwoyeu Romatzyh, Cyrillic. Only the spelling changes, never the readings; Wade-Giles plain and Cyrillic can also hide tone marks.",
+    "help.li3": "<b>Lay out</b>: change size and fonts (Hanzi and phonetic) any time; “Pinyin position” puts readings above or right of each character (Zhuyin uses horizontal / vertical); spacing sliders apply instantly. Made a mess? Hit “Reset”.",
+    "help.li4": "<b>Check readings</b>: “Tricky chars” shades polyphones, erhua, 的/地/得, 一/不 and neutral tones. Click any character in the preview to change its reading — neutral and particle readings are in the list. Click 儿 to choose erhua or a separate syllable.",
+    "help.li5": "<b>Print</b>: the preview paginates to A4 exactly as printed; “Print / PDF” outputs every page. Long-text mode asks for a page range first — or print in batches (100 pages each) and merge them into one PDF, all on your device.",
+    "help.li6": "<b>Copy</b>: five formats — paste into Word, web ruby tags, web page (HTML+CSS), character–pinyin pairs, pinyin only.",
+    "help.li7": "<b>For kids</b>: “Read mode” hides the editor; arrow keys turn pages. The bottom bar highlights sentence by sentence, reads aloud, and can follow along with the microphone (experimental); it remembers where you stopped.",
+    "help.li8": "<b>Language &amp; readings</b>: switch Simplified / Traditional / English at top right; under “More settings” you can use Taiwan readings, convert the article to Traditional (Full Dictionary and Zhuyin versions), list local fonts, and check for engine updates.",
+    "help.privacy": "Everything runs in your own browser — your article is never uploaded. Only “Check for updates”, online fonts and the first “Merge PDF” go online, and none of them touch your text. Mic follow-along uses the browser’s speech recognition, so audio may be processed by the browser vendor.",
     "ft.brand": "Chinese Pinyin Annotator",
     "ft.tag": "Runs locally · no content uploaded",
     "ft.eng": " · engine: pinyin-pro",
     "ft.lic": "The recommended pinyin font \"印氪先生汉语拼音\" must be installed separately and is for non-commercial use only; for commercial use contact the author <a href=\"https://www.zhihu.com/people/zou-wen-biao\" target=\"_blank\" rel=\"noopener\">印氪先生</a> for a license (no font file is bundled with this tool)",
     "a.close": "Close",
-    "pt.title": "The \"Inker Pinyin\" font is not installed yet",
-    "pt.p1": "Pinyin is temporarily shown in KaiTi. In common Chinese fonts the pinyin is plain Latin lettering (double-storey a), not textbook pinyin lettering; for teaching, installing a dedicated pinyin font is recommended.",
+    "pt.title": "The “Inker Pinyin” font is not installed",
+    "pt.p1": "Pinyin is shown in Kai for now. Latin letters in Chinese fonts are plain double-storey “a”, not the textbook form — for children, install a dedicated pinyin font. Phones and tablets can't install fonts; just switch back to “Andika”.",
     "pt.dl": "Download: 印氪先生汉语拼音优化版W4.zip (Lanzou Cloud)",
     "pt.author": "Font author: ",
     "pt.steps": "Install: download → unzip → double-click <b>印氪先生汉语拼音优化版W4-Regular-1.001.ttf</b> → click \"Install\" (top-left). Afterwards <b>fully quit and restart the browser</b> (refreshing alone is not enough), then click \"Re-check\" below.",
@@ -1293,17 +1292,16 @@ var I18N = {
     "rd.micError": "Echo-read recognition failed. Please retry.",
     "rd.micConfirm": "Echo-read is processed by the browser's built-in speech-recognition service; audio may be sent to the browser or OS vendor's servers (this tool still never receives your text). Enable the microphone?",
     "rd.micCancelled": "Microphone echo-read cancelled.",
-    "help.li9": "The reading-mode toolbar adds sentence highlighting, auto-scroll, text-to-speech and microphone echo-read, and remembers where you stopped; tap a character to jump to that sentence. Speech uses the browser Web Speech API; microphone echo-read uses the browser speech-recognition service, which may send audio to the server — do not enable it if you mind.",
     "lm.excerpt": "(Long-text mode: full text of {n} chars loaded; click \"Exit long-text mode\" below to edit again)",
     "lm.max": "Up to 2,000,000 characters per load; only the first 2,000,000 were loaded.",
     "lm.wait": "Laying out, please wait…",
     "lm.done": "Long-text mode: {n} chars · {p} pages",
     "lm.prog": "Long-text mode: {n} chars · {p} pages laid out (est. ~{e} pages)",
-    "pd.title": "Print / Export PDF (long-text mode)",
+    "pd.title": "Print / Export PDF (long text)",
     "pd.range": "Page range",
-    "pd.go": "Print selected range",
-    "pd.all": "Print whole book in batches (100 pages each)",
-    "pd.merge": "Merge PDF files… (sorted by file name)",
+    "pd.go": "Print these pages",
+    "pd.all": "Print in batches (100 pages)",
+    "pd.merge": "Merge PDFs…",
     "pd.cancel": "Cancel",
     "pd.hint": "Batch printing: in each print dialog choose \"Save as PDF\" for the current batch; the next batch opens automatically after you close the dialog. When all batches are saved, click \"Merge PDF files\" to combine them into one PDF, sorted by file name (done locally, nothing is uploaded).",
     "pd.errRange": "Invalid page range",
@@ -1316,10 +1314,10 @@ var I18N = {
     "pd.mergeFail": "Merge failed: make sure you are online (the merge component loads on first use) and the selected files are PDFs.",
     "pop.erh.merge": "Add r to previous (erhua: huār)",
     "pop.erh.char": "Annotate 儿 alone (not erhua: huā ér)",
-    "pop.cut": "Break before this character",
-    "pop.uncut": "Undo break before this character",
-    "pop.join": "Join with next character",
-    "pop.unjoin": "Undo join with next character",
+    "pop.cut": "Start a new word here",
+    "pop.uncut": "Join back to the previous character",
+    "pop.join": "Join with the next character",
+    "pop.unjoin": "Split from the next character",
     "pop.reset": "Restore default reading",
     "a.tooBig": "The file exceeds 2 MB — split it before importing.",
     "a.encoding": "Cannot detect the file encoding; re-save the txt as UTF-8 or ANSI and import again.",
@@ -1331,7 +1329,7 @@ var I18N = {
     "a.fontEnumDenied": "Font access was denied, so the option was unchecked. Tick it again to grant permission, or keep using the common fonts above.",
     "a.fontEnumErr": "Failed to enumerate local fonts; the option was unchecked.",
     "seg.decompressFail": "This browser can't decompress the segmentation dictionary (needs recent Chrome / Edge / Firefox / Safari); falling back to per-character annotation.",
-    "a.styleSaved": "Style saved — it will be applied automatically next time.\n(Stored in this browser only: clearing browser data restores defaults; settings don't sync across devices.)",
+    "a.styleSaved": "Saved. It will be applied next time you open this page.\\n(Stored in this browser only — clearing site data resets it; not synced across devices.)",
     "a.styleSaveFail": "Save failed: browser storage unavailable (private mode or storage disabled).",
     "fonts.group": "Installed on this device",
     "eng.checking": " · checking…",
@@ -1343,14 +1341,14 @@ var I18N = {
     "eng.new": "New engine version v{v} found (current v{c}) and cached; <a href=\"#\" id=\"lnk-engine-reload\" style=\"color:var(--accent-dark);\">refresh the page</a> to switch.",
     "wf.loading": "Loading the \"{name}\" font from the cloud — first use may take a moment; it is then <b>cached on this device</b> and won't download again.",
     "cp.noText": "Enter some text first.",
-    "cp.okWord": "Rich text copied — paste it straight into Word.",
+    "cp.okWord": "Copied. Now paste it into Word.",
     "cp.fail": "Copy failed — use \"Print / Export PDF\" instead.",
     "cp.failRetry": "Copy failed — please try again.",
     "cp.noRich": "This browser doesn't support rich-text copy — use \"Print / Export PDF\" instead.",
     "cp.okRuby": "HTML ruby tags copied.",
     "cp.okWeb": "HTML+CSS Zhuyin source copied — paste it into a web page to reproduce the preview layout.",
-    "cp.okPair": "Character + phonetic pairs copied.",
-    "cp.okPy": "Phonetics copied (punctuation kept) — paste into Word / Notepad.",
+    "cp.okPair": "Copied: one character and its reading per line.",
+    "cp.okPy": "Copied: readings only, punctuation and paragraphs kept.",
     "cp.noClip": "Copy not supported in this browser — use \"Print / Export PDF\" instead."
   }
 };
@@ -3108,7 +3106,7 @@ function applyI18n() {
         off += par.length + 1;
       }
       preview.innerHTML = '<div class="paper continuous"><div class="pg-content">' +
-        (html || '<p class="empty-tip">' + i18nT("empty.tip", "在左侧输入文章后，音标预览会显示在这里") + '</p>') + "</div></div>";
+        (html || '<p class="empty-tip">' + i18nT("empty.tip", "贴好文章，拼音就显示在这里") + '</p>') + "</div></div>";
       printArea.innerHTML = text.trim() ? preview.innerHTML : "";
       pageNav.classList.add("scroll-mode");   // 连续滚动无页码，只留方式切换
     }
@@ -3296,7 +3294,7 @@ function applyI18n() {
     if (segScheme !== "none" && segDict) {
       var cutBtn = document.createElement("button");
       cutBtn.type = "button";
-      cutBtn.textContent = segOverrides[idx] === "cut" ? i18nT("pop.uncut", "取消此字前断词") : i18nT("pop.cut", "在此字前断词");
+      cutBtn.textContent = segOverrides[idx] === "cut" ? i18nT("pop.uncut", "并回前一个字") : i18nT("pop.cut", "从这个字起分开");
       cutBtn.addEventListener("click", function () {
         if (segOverrides[idx] === "cut") delete segOverrides[idx];
         else segOverrides[idx] = "cut";
@@ -3306,7 +3304,7 @@ function applyI18n() {
       popOpts.appendChild(cutBtn);
       var joinBtn = document.createElement("button");
       joinBtn.type = "button";
-      joinBtn.textContent = segOverrides[idx + 1] === "join" ? i18nT("pop.unjoin", "取消与后一字连词") : i18nT("pop.join", "与后一字连成词");
+      joinBtn.textContent = segOverrides[idx + 1] === "join" ? i18nT("pop.unjoin", "和后一个字分开") : i18nT("pop.join", "和后一个字连起来");
       joinBtn.addEventListener("click", function () {
         if (segOverrides[idx + 1] === "join") delete segOverrides[idx + 1];
         else segOverrides[idx + 1] = "join";
@@ -3915,9 +3913,9 @@ function applyI18n() {
     var L = window.__LANG || "cn";
     var zy = getPhScheme().labelKind === "zy";
     var MAP = {
-      cn: { py: ["音标显示", "在汉字上方显示音标"], zy: ["注音显示", "在汉字上方显示注音"] },
-      tw: { py: ["音標顯示", "在漢字上方顯示音標"], zy: ["注音顯示", "在漢字上方顯示注音"] },
-      en: { py: ["Phonetics", "Show phonetics above characters"], zy: ["Zhuyin", "Show zhuyin above characters"] }
+      cn: { py: ["音标", "显示"], zy: ["注音", "显示"] },
+      tw: { py: ["音標", "顯示"], zy: ["注音", "顯示"] },
+      en: { py: ["Phonetics", "Show"], zy: ["Zhuyin", "Show"] }
     };
     var m = (MAP[L] || MAP.cn)[zy ? "zy" : "py"];
     var lbl = document.querySelector('[data-i18n="l.showpy"]');
@@ -4054,7 +4052,7 @@ function applyI18n() {
     };
     try {
       localStorage.setItem(STYLE_KEY, JSON.stringify(data));
-      alert(i18nT("a.styleSaved", "已保存当前样式，下次打开会自动应用。\n（仅保存在本浏览器的缓存中：清除浏览器数据后会恢复默认，不同设备之间不同步。）"));
+      alert(i18nT("a.styleSaved", "已保存，下次打开自动套用。\n（只存在这台设备的浏览器里：清缓存会恢复默认，换设备不同步。）"));
     } catch (eSave) {
       alert(i18nT("a.styleSaveFail", "保存失败：浏览器存储不可用（可能处于无痕模式或已禁用存储）。"));
     }
@@ -4449,7 +4447,7 @@ function applyI18n() {
             "text/html": new Blob([data.word], { type: "text/html" }),
             "text/plain": new Blob([text], { type: "text/plain" })
           })
-        ]).then(function () { alert(i18nT("cp.okWord", "已复制全文富文本，可直接粘贴到 Word。")); })
+        ]).then(function () { alert(i18nT("cp.okWord", "复制好了，去 Word 里粘贴吧。")); })
           .catch(function () { alert(i18nT("cp.fail", "复制失败，请改用「打印 / 导出 PDF」。")); });
       } else {
         alert(i18nT("cp.noRich", "当前浏览器不支持富文本复制，请改用「打印 / 导出 PDF」。"));
@@ -4486,8 +4484,8 @@ function applyI18n() {
         navigator.clipboard.writeText(out)
           .then(function () {
             alert(fmt === "ruby" ? i18nT("cp.okRuby", "已复制全文 HTML ruby 标签。")
-              : fmt === "pair" ? i18nT("cp.okPair", "已复制全文「字「音标」」对照。")
-              : i18nT("cp.okPy", "已复制全文音标（保留标点），可直接粘贴到 Word / 记事本。"));
+              : fmt === "pair" ? i18nT("cp.okPair", "复制好了：每行一个字和它的音标。")
+              : i18nT("cp.okPy", "复制好了：只有音标，标点和分段都保留。"));
           })
           .catch(function () { alert(i18nT("cp.failRetry", "复制失败，请重试。")); });
       } else {

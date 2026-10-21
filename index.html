@@ -139,6 +139,9 @@
   td:first-child, th:first-child { text-align: left; }
   .faq div { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; font-size: 14.5px; }
   .faq b { color: var(--accent-dark); }
+  .same-note { text-align: center; color: var(--ink-soft); font-size: 13.5px; margin-top: 14px; }
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tbl-wrap table { min-width: 560px; }
   footer { margin-top: 44px; text-align: center; color: var(--ink-soft); font-size: 13.5px; }
   footer a { color: var(--accent-dark); }
 </style>
@@ -165,16 +168,16 @@
   <div class="cards">
     <div class="card" id="card-mini">
       <h2 data-i18n="v.mini.name">轻量版</h2>
-      <p class="file">mini.html · <span data-i18n="v.mini.size">约 0.9 MB</span></p>
+      <p class="file">mini.html · <span data-i18n="v.mini.size">约 1 MB</span></p>
       <ul>
-        <li data-i18n="v.mini.li1">汉字逐字注音</li>
-        <li data-i18n="v.mini.li2">一 / 不变调、轻声、儿化全支持</li>
-        <li data-i18n="v.mini.li3">界面简 / 繁 / EN 可切换</li>
-        <li data-i18n="v.mini.li4">A4 分页打印 / 导出 PDF</li>
-        <li class="dim" data-i18n="v.mini.li5">无分词（词组不连排）</li>
+        <li data-i18n="v.mini.li1">体积最小，老电脑、旧手机也带得动</li>
+        <li data-i18n="v.mini.li2">拼音、注音、九种写法随便切</li>
+        <li data-i18n="v.mini.li3">阅读模式、打印 PDF 一样不少</li>
+        <li data-i18n="v.mini.li4">界面简 / 繁 / EN 可切换</li>
+        <li class="dim" data-i18n="v.mini.li5">没有词组词典，只能逐字注音</li>
       </ul>
-      <p class="size" data-i18n="v.mini.fit">适合：只要注音排版，设备老旧或流量敏感</p>
-      <button class="go plain" data-ver="mini" data-i18n="v.mini.go">进入轻量版</button>
+      <p class="size" data-i18n="v.mini.fit">适合：只要能注音排版，不挑分词</p>
+      <button class="go plain" data-ver="mini" data-i18n="v.mini.go">打开轻量版</button>
     </div>
 
     <div class="card reco" id="card-pinyin">
@@ -182,44 +185,46 @@
       <h2 data-i18n="v.pinyin.name">主线版</h2>
       <p class="file">pinyin.html · <span data-i18n="v.pinyin.size">约 1.4 MB</span></p>
       <ul>
-        <li data-i18n="v.pinyin.li1">包含轻量版全部功能</li>
-        <li data-i18n="v.pinyin.li2">智能分词：词组的字连排、词间留空隙</li>
-        <li data-i18n="v.pinyin.li3">内置 3 万常用词，多音字读音更准（银行 yín háng）</li>
-        <li data-i18n="v.pinyin.li4">点击生字改读音、断词 / 合词</li>
-        <li data-i18n="v.pinyin.li5">可选台湾读音与注音符号（ㄅㄆㄇ）</li>
+        <li data-i18n="v.pinyin.li1">3 万常用词，按词连排更像课本</li>
+        <li data-i18n="v.pinyin.li2">多音字更准（银行 yín háng）</li>
+        <li data-i18n="v.pinyin.li3">点字改读音、手动断词</li>
+        <li data-i18n="v.pinyin.li4">阅读模式、打印 PDF、五种复制</li>
+        <li data-i18n="v.pinyin.li5">可切注音符号与台湾读音</li>
       </ul>
-      <p class="size" data-i18n="v.pinyin.fit">适合：日常给娃做朗读材料（大多数家庭选这个）</p>
-      <button class="go" data-ver="pinyin" data-i18n="v.pinyin.go">进入主线版</button>
+      <p class="size" data-i18n="v.pinyin.fit">适合：日常给孩子做朗读材料（多数家庭够用）</p>
+      <button class="go" data-ver="pinyin" data-i18n="v.pinyin.go">打开主线版</button>
     </div>
 
     <div class="card" id="card-plus">
       <h2 data-i18n="v.plus.name">完整词典版</h2>
-      <p class="file">plus.html · <span data-i18n="v.plus.size">约 7 MB</span></p>
+      <p class="file">plus.html · <span data-i18n="v.plus.size">约 7.2 MB</span></p>
       <ul>
-        <li data-i18n="v.plus.li1">包含主线版全部功能</li>
-        <li data-i18n="v.plus.li2">词典扩充到 33.7 万词</li>
-        <li data-i18n="v.plus.li3">成语、专有名词也能整体成词（刻舟求剑、黔驴技穷）</li>
-        <li data-i18n="v.plus.li4">OpenCC 简 ↔ 繁一键转换</li>
-        <li data-i18n="v.plus.li5">仅首次加载稍慢，之后浏览器缓存秒开</li>
+        <li data-i18n="v.plus.li1">33.7 万词，成语人名地名整词排（刻舟求剑）</li>
+        <li data-i18n="v.plus.li2">含主线版全部功能</li>
+        <li data-i18n="v.plus.li3">简 ⇄ 繁一键转换</li>
+        <li data-i18n="v.plus.li4">注音、阅读模式、长文打印都在</li>
+        <li data-i18n="v.plus.li5">首次加载慢一点，之后浏览器缓存秒开</li>
       </ul>
-      <p class="size" data-i18n="v.plus.fit">适合：老师做成语 / 进阶教材，对分词要求高</p>
-      <button class="go plain" data-ver="plus" data-i18n="v.plus.go">进入完整词典版</button>
+      <p class="size" data-i18n="v.plus.fit">适合：老师做成语 / 进阶教材</p>
+      <button class="go plain" data-ver="plus" data-i18n="v.plus.go">打开完整词典版</button>
     </div>
 
     <div class="card" id="card-zhuyin">
       <h2 data-i18n="v.zhuyin.name">注音版</h2>
-      <p class="file">zhuyin.html · <span data-i18n="v.zhuyin.size">约 2 MB</span></p>
+      <p class="file">zhuyin.html · <span data-i18n="v.zhuyin.size">约 2.3 MB</span></p>
       <ul>
-        <li data-i18n="v.zhuyin.li1">預設繁體介面（可切简 / EN）</li>
-        <li data-i18n="v.zhuyin.li2">注音符號 ㄅㄆㄇ，橫排 / 直排（標在字右側）可切換</li>
-        <li data-i18n="v.zhuyin.li3">臺灣讀音：教育部《重編國語辭典修訂本》</li>
-        <li data-i18n="v.zhuyin.li4">OpenCC 簡 ↔ 繁一鍵轉換</li>
-        <li data-i18n="v.zhuyin.li5">智慧分詞，可切回漢語拼音</li>
+        <li data-i18n="v.zhuyin.li1">打开就是繁体界面 + 注音符号</li>
+        <li data-i18n="v.zhuyin.li2">横排 / 直排，像台湾课本</li>
+        <li data-i18n="v.zhuyin.li3">台湾读音（教育部《重編國語辭典修訂本》）</li>
+        <li data-i18n="v.zhuyin.li4">简 ⇄ 繁转换 + 注音芫荽 IVS</li>
+        <li data-i18n="v.zhuyin.li5">也能切回汉语拼音</li>
       </ul>
-      <p class="size" data-i18n="v.zhuyin.fit">适合：港澳台用户 / 注音教学 / 海外华语学习者</p>
-      <button class="go plain" data-ver="zhuyin" data-i18n="v.zhuyin.go">进入注音版</button>
+      <p class="size" data-i18n="v.zhuyin.fit">适合：港澳台用户、注音教学</p>
+      <button class="go plain" data-ver="zhuyin" data-i18n="v.zhuyin.go">打开注音版</button>
     </div>
   </div>
+
+  <p class="same-note" data-i18n="v.same">四个版本的界面、排版、打印、阅读模式完全一样，只差词典大小和简繁转换。</p>
 
   <div id="progress" hidden>
     <span class="txt" id="prog-txt"></span>
@@ -229,45 +234,54 @@
   <section>
     <h2 data-i18n="sec.feat">核心功能</h2>
     <div class="feat">
-      <div data-i18n="f.1"><b>教材式排版</b>：汉字上方标拼音，轻声自动不标调（妈妈 mā ma）</div>
-      <div data-i18n="f.2"><b>一 / 不变调开关</b>：一个 → yí gè，也可切回标原调</div>
-      <div data-i18n="f.3"><b>儿化音双模式</b>：花儿 huā er / huār，人名误判点一下就改</div>
-      <div data-i18n="f.4"><b>台湾读音</b>：台湾地区教育主管部门《重編國語辭典修訂本》1.5 万词差异，垃圾 ㄌㄜˋㄙㄜˋ</div>
-      <div data-i18n="f.5"><b>注音符号</b>：ㄅㄆㄇ 可切横排 / 直排——横写标在字上方，或竖排标注在字右侧</div>
-      <div data-i18n="f.6"><b>简繁转换</b>：OpenCC 双向转换（注音版 / 完整版）</div>
-      <div data-i18n="f.7"><b>A4 所见即所印</b>：自动分页不留大空白，导出 PDF 一页不少</div>
-      <div data-i18n="f.8"><b>易错点高亮</b>：多音字、的地得、一/不 加底纹，打印核对</div>
-      <div data-i18n="f.9"><b>纯本地运行</b>：文章不上传服务器，断网双击就能用</div>
+      <div data-i18n="f.1"><b>九种音标</b>：汉语拼音、注音、耶鲁、威妥玛、国罗、西里尔…随时换</div>
+      <div data-i18n="f.2"><b>教材式排版</b>：拼音在字上方，轻声自动不标调（妈妈 mā ma）</div>
+      <div data-i18n="f.3"><b>一 / 不变调</b>：一个 → yí gè，也可切回本调</div>
+      <div data-i18n="f.4"><b>儿化双模式</b>：花儿 huā er / huār，判错点一下就改</div>
+      <div data-i18n="f.5"><b>台湾读音</b>：教育部辞典 1.5 万词差异，垃圾 ㄌㄜˋㄙㄜˋ</div>
+      <div data-i18n="f.6"><b>注音横直排</b>：ㄅㄆㄇ 标在字上方，或竖排在字右侧</div>
+      <div data-i18n="f.7"><b>简繁转换</b>：OpenCC 双向，连地区用词一起转</div>
+      <div data-i18n="f.8"><b>A4 所见即所印</b>：自动分页，导出 PDF 不缺页</div>
+      <div data-i18n="f.9"><b>易错字标色</b>：多音字、的 / 地 / 得、一 / 不 加底色</div>
+      <div data-i18n="f.10"><b>点字改音</b>：轻声、儿化、断词都能手动调</div>
+      <div data-i18n="f.11"><b>阅读模式</b>：逐句高亮、朗读、麦克风跟读</div>
+      <div data-i18n="f.12"><b>纯本地</b>：文章不上传，断网双击就能用</div>
     </div>
   </section>
 
   <section>
     <h2 data-i18n="sec.cmp">四个版本怎么选</h2>
+    <div class="tbl-wrap">
     <table>
       <tr>
         <th></th>
-        <th data-i18n="t.mini">轻量版 mini</th>
-        <th><span data-i18n="t.pinyin">主线版 pinyin</span>（<span data-i18n="t.reco">推荐</span>）</th>
-        <th data-i18n="t.plus">完整词典版 plus</th>
-        <th data-i18n="t.zhuyin">注音版 zhuyin</th>
+        <th data-i18n="t.mini">轻量版</th>
+        <th><span data-i18n="t.pinyin">主线版</span>（<span data-i18n="t.reco">推荐</span>）</th>
+        <th data-i18n="t.plus">完整词典版</th>
+        <th data-i18n="t.zhuyin">注音版</th>
       </tr>
-      <tr><td data-i18n="t.r1">体积</td><td data-i18n="t.r1v">约 0.9 MB</td><td>约 1.4 MB</td><td>约 7 MB</td><td>约 2 MB</td></tr>
-      <tr><td data-i18n="t.r2">逐字注音</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
-      <tr><td data-i18n="t.r3">智能分词（词组连排）</td><td>—</td><td>✅ 3 万常用词</td><td>✅ 33.7 万全量词</td><td>✅ 3 万常用词</td></tr>
+      <tr><td data-i18n="t.r1">体积</td><td data-i18n="t.r1v">约 1 MB</td><td>约 1.4 MB</td><td>约 7.2 MB</td><td>约 2.3 MB</td></tr>
+      <tr><td data-i18n="t.r3">按词连排</td><td>—</td><td data-i18n="t.r3v1">3 万词</td><td data-i18n="t.r3v2">33.7 万词</td><td data-i18n="t.r3v1">3 万词</td></tr>
       <tr><td data-i18n="t.r4">成语 / 长尾词成词</td><td>—</td><td data-i18n="t.r4v">部分</td><td>✅</td><td data-i18n="t.r4v">部分</td></tr>
-      <tr><td data-i18n="t.r5">注音符号 / 台湾读音</td><td>✅</td><td>✅</td><td>✅</td><td>✅ 默认开启</td></tr>
-      <tr><td data-i18n="t.r6">简 ↔ 繁转换</td><td>—</td><td>—</td><td>✅</td><td>✅</td></tr>
-      <tr><td data-i18n="t.r7">适合</td><td data-i18n="t.r7a">只要注音排版</td><td data-i18n="t.r7b">日常家庭使用</td><td data-i18n="t.r7c">老师 / 进阶教学</td><td data-i18n="t.r7d">港澳台 / 注音教学</td></tr>
+      <tr><td data-i18n="t.r8">九种音标</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td data-i18n="t.r5">注音符号 / 台湾读音</td><td>✅</td><td>✅</td><td>✅</td><td data-i18n="t.r5v">✅ 默认开</td></tr>
+      <tr><td data-i18n="t.r6">简 ⇄ 繁转换</td><td>—</td><td>—</td><td>✅</td><td>✅</td></tr>
+      <tr><td data-i18n="t.r9">注音芫荽 IVS</td><td>—</td><td>—</td><td>—</td><td>✅</td></tr>
+      <tr><td data-i18n="t.r10">阅读模式 / 朗读跟读</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td data-i18n="t.r11">长文 / 分批打印</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      <tr><td data-i18n="t.r7">适合</td><td data-i18n="t.r7a">只要注音排版</td><td data-i18n="t.r7b">日常家用</td><td data-i18n="t.r7c">老师 / 进阶</td><td data-i18n="t.r7d">港澳台 / 注音</td></tr>
     </table>
+    </div>
   </section>
 
   <section class="faq">
     <h2 data-i18n="sec.faq">常见问题</h2>
-    <div data-i18n="faq.1"><b>需要联网吗？</b><br>不需要。四个版本都是单文件 HTML，拼音引擎、词典、台湾读音表、OpenCC 转换数据全部内嵌，断网双击就能用；联网仅用于可选的霞鹜文楷网络字体和引擎更新检查。</div>
-    <div data-i18n="faq.2"><b>文章内容会被上传吗？</b><br>不会。纯前端工具，全部处理都在你自己的浏览器里完成，没有任何请求把内容发往服务器。</div>
-    <div data-i18n="faq.3"><b>「台湾读音」的数据来源？</b><br>台湾地区教育主管部门《重編國語辭典修訂本》（g0v 萌典开放数据），覆盖约 1.5 万个两岸读音不同的词与近 200 个单字，如垃圾 ㄌㄜˋㄙㄜˋ、星期 ㄑ丨ˊ；拼音与注音模式都生效，可随时切回大陆读音。</div>
-    <div data-i18n="faq.4"><b>选错了版本怎么办？</b><br>随时可以回到本页（浏览器地址栏去掉文件名回车即可）换版本，四个版本的操作方式完全一致，输入内容和样式设置互相独立。</div>
-    <div data-i18n="faq.5"><b>多音字能保证全对吗？</b><br>不能保证 100%。各版本内嵌词典不同，多音字正确率也不同（完整词典版最高）。用于教学请勾选「易错点高亮」逐字核对，发现错误点击预览中对应的字即可改为正确读音——每个版本的预览区底部也有同样的提醒。</div>
+    <div data-i18n="faq.1"><b>需要联网吗？</b><br>不用。四个版本都是单文件，拼音引擎、词典、台湾读音表、简繁转换数据全部内嵌，断网双击就能用。只有在线字体、检查引擎更新、第一次合并 PDF 需要联网，都不碰你的文章。</div>
+    <div data-i18n="faq.2"><b>手机上能用吗？</b><br>能，界面会跟着屏幕宽度自动改成上下排列，翻页变成连续滑动。手机上装不了本地字体，用内置的 Andika 拼音字体就行；阅读模式的朗读和跟读也照常可用。</div>
+    <div data-i18n="faq.3"><b>文章能放多长？</b><br>单次最多 200 万字。超过 3 万字会自动进入长文模式，边排版边看、不卡界面；打印时可以选页码范围，也可以分批打印（每批 100 页）再合成一个 PDF。</div>
+    <div data-i18n="faq.4"><b>台湾读音从哪来？</b><br>教育部《重編國語辭典修訂本》（g0v 萌典开放数据），覆盖约 1.5 万个两岸读音不同的词和近 200 个字，比如垃圾 ㄌㄜˋㄙㄜˋ、星期 ㄑ丨ˊ。拼音和注音模式都生效，随时能切回普通话读音。</div>
+    <div data-i18n="faq.5"><b>选错了版本怎么办？</b><br>回到这一页换就行（地址栏去掉文件名回车）。四个版本的操作完全一样，输入的文章和设置各自独立保存。</div>
+    <div data-i18n="faq.6"><b>多音字能全对吗？</b><br>都做不到 100%，各版本词典不同，准确率也不同（完整词典版最高）。给孩子用之前，勾上「易错字」过一遍，发现错了点那个字就能改读音。</div>
   </section>
 
   <footer>
@@ -285,50 +299,62 @@ var I18N = {
     "resume.used": "上次使用：", "resume.auto": "秒後自動進入",
     "resume.go": "立即進入", "resume.cancel": "換個版本",
     "v.badge": "推薦",
-    "v.mini.name": "輕量版", "v.mini.size": "約 0.9 MB", "v.mini.go": "進入輕量版",
-    "v.mini.li1": "漢字逐字注音", "v.mini.li2": "一 / 不變調、輕聲、兒化全支援",
-    "v.mini.li3": "介面簡 / 繁 / EN 可切換", "v.mini.li4": "A4 分頁列印 / 匯出 PDF",
-    "v.mini.li5": "無分詞（詞組不連排）", "v.mini.fit": "適合：只要注音排版，裝置老舊或流量敏感",
-    "v.pinyin.name": "主線版", "v.pinyin.size": "約 1.4 MB", "v.pinyin.go": "進入主線版",
-    "v.pinyin.li1": "包含輕量版全部功能", "v.pinyin.li2": "智慧分詞：詞組的字連排、詞間留空隙",
-    "v.pinyin.li3": "內建 3 萬常用詞，多音字讀音更準（銀行 yín háng）",
-    "v.pinyin.li4": "點擊生字改讀音、斷詞 / 合詞", "v.pinyin.li5": "可選臺灣讀音與注音符號（ㄅㄆㄇ）",
-    "v.pinyin.fit": "適合：日常給孩子做朗讀教材（大多數家庭選這個）",
-    "v.plus.name": "完整詞典版", "v.plus.size": "約 7 MB", "v.plus.go": "進入完整詞典版",
-    "v.plus.li1": "包含主線版全部功能", "v.plus.li2": "詞典擴充到 33.7 萬詞",
-    "v.plus.li3": "成語、專有名詞也能整體成詞（刻舟求劍、黔驢技窮）",
-    "v.plus.li4": "OpenCC 簡 ↔ 繁一鍵轉換", "v.plus.li5": "僅首次載入稍慢，之後瀏覽器快取秒開",
-    "v.plus.fit": "適合：老師做成語 / 進階教材，對分詞要求高",
-    "v.zhuyin.name": "注音版", "v.zhuyin.size": "約 2 MB", "v.zhuyin.go": "進入注音版",
-    "v.zhuyin.li1": "預設繁體介面（可切簡 / EN）", "v.zhuyin.li2": "注音符號 ㄅㄆㄇ，橫排 / 直排（標在字右側）可切換",
-    "v.zhuyin.li3": "臺灣讀音：教育部《重編國語辭典修訂本》", "v.zhuyin.li4": "OpenCC 簡 ↔ 繁一鍵轉換",
-    "v.zhuyin.li5": "智慧分詞，可切回漢語拼音",
-    "v.zhuyin.fit": "適合：港澳台使用者 / 注音教學 / 海外華語學習者",
+    "v.mini.name": "輕量版", "v.mini.size": "約 1 MB", "v.mini.go": "開啟輕量版",
+    "v.mini.li1": "體積最小，舊電腦、舊手機也帶得動", "v.mini.li2": "拼音、注音、九種寫法隨便切",
+    "v.mini.li3": "閱讀模式、列印 PDF 一樣不少", "v.mini.li4": "介面簡 / 繁 / EN 可切換",
+    "v.mini.li5": "沒有詞組詞典，只能逐字注音", "v.mini.fit": "適合：只要能注音排版，不挑分詞",
+    "v.pinyin.name": "主線版", "v.pinyin.size": "約 1.4 MB", "v.pinyin.go": "開啟主線版",
+    "v.pinyin.li1": "3 萬常用詞，按詞連排更像課本", "v.pinyin.li2": "多音字更準（銀行 yín háng）",
+    "v.pinyin.li3": "點字改讀音、手動斷詞",
+    "v.pinyin.li4": "閱讀模式、列印 PDF、五種複製", "v.pinyin.li5": "可切注音符號與臺灣讀音",
+    "v.pinyin.fit": "適合：日常給孩子做朗讀教材（多數家庭夠用）",
+    "v.plus.name": "完整詞典版", "v.plus.size": "約 7.2 MB", "v.plus.go": "開啟完整詞典版",
+    "v.plus.li1": "33.7 萬詞，成語人名地名整詞排（刻舟求劍）", "v.plus.li2": "含主線版全部功能",
+    "v.plus.li3": "簡 ⇄ 繁一鍵轉換",
+    "v.plus.li4": "注音、閱讀模式、長文列印都在", "v.plus.li5": "首次載入慢一點，之後瀏覽器快取秒開",
+    "v.plus.fit": "適合：老師做成語 / 進階教材",
+    "v.zhuyin.name": "注音版", "v.zhuyin.size": "約 2.3 MB", "v.zhuyin.go": "開啟注音版",
+    "v.zhuyin.li1": "開啟就是繁體介面 + 注音符號", "v.zhuyin.li2": "橫排 / 直排，像臺灣課本",
+    "v.zhuyin.li3": "臺灣讀音（教育部《重編國語辭典修訂本》）", "v.zhuyin.li4": "簡 ⇄ 繁轉換 + 注音芫荽 IVS",
+    "v.zhuyin.li5": "也能切回漢語拼音",
+    "v.zhuyin.fit": "適合：港澳台使用者、注音教學",
     "sec.feat": "核心功能", "sec.cmp": "四個版本怎麼選", "sec.faq": "常見問題",
-    "f.1": "<b>教材式排版</b>：漢字上方標拼音，輕聲自動不標調（媽媽 mā ma）",
-    "f.2": "<b>一 / 不變調開關</b>：一個 → yí gè，也可切回標原調",
-    "f.3": "<b>兒化音雙模式</b>：花兒 huā er / huār，人名誤判點一下就改",
-    "f.4": "<b>臺灣讀音</b>：教育部《重編國語辭典修訂本》1.5 萬詞差異，垃圾 ㄌㄜˋㄙㄜˋ",
-    "f.5": "<b>注音符號</b>：ㄅㄆㄇ 可切橫排 / 直排——橫寫標在字上方，或直排在字右側",
-    "f.6": "<b>簡繁轉換</b>：OpenCC 雙向轉換（注音版 / 完整版）",
-    "f.7": "<b>A4 所見即所印</b>：自動分頁不留大空白，匯出 PDF 一頁不少",
-    "f.8": "<b>易錯點高亮</b>：多音字、的地得、一/不 加底紋，列印核對",
-    "f.9": "<b>純本地運行</b>：文章不上傳伺服器，斷網雙擊就能用",
-    "t.mini": "輕量版 mini", "t.pinyin": "主線版 pinyin", "t.reco": "推薦",
-    "t.plus": "完整詞典版 plus", "t.zhuyin": "注音版 zhuyin",
-    "t.r1": "體積", "t.r1v": "約 0.9 MB", "t.r2": "逐字注音",
-    "t.r3": "智慧分詞（詞組連排）", "t.r4": "成語 / 長尾詞成詞", "t.r4v": "部分",
-    "t.r5": "注音符號 / 臺灣讀音", "t.r5v": "✅ 預設開啟",
-    "t.r6": "簡 ↔ 繁轉換", "t.r7": "適合",
-    "t.r7a": "只要注音排版", "t.r7b": "日常家庭使用", "t.r7c": "老師 / 進階教學", "t.r7d": "港澳台 / 注音教學",
-    "faq.1": "<b>需要連網嗎？</b><br>不需要。四個版本都是單檔案 HTML，拼音引擎、詞典、臺灣讀音表、OpenCC 轉換資料全部內嵌，斷網雙擊就能用；連網僅用於可選的霞鶩文楷網路字型和引擎更新檢查。",
-    "faq.2": "<b>文章內容會被上傳嗎？</b><br>不會。純前端工具，全部處理都在你自己的瀏覽器裡完成，沒有任何請求把內容發往伺服器。",
-    "faq.3": "<b>「臺灣讀音」的資料來源？</b><br>教育部《重編國語辭典修訂本》（g0v 萌典開放資料），覆蓋約 1.5 萬個兩岸讀音不同的詞與近 200 個單字，如垃圾 ㄌㄜˋㄙㄜˋ、星期 ㄑ丨ˊ；拼音與注音模式都生效，可隨時切回大陸讀音。",
-    "faq.4": "<b>選錯了版本怎麼辦？</b><br>隨時可以回到本頁（瀏覽器網址列去掉檔名按 Enter 即可）換版本，四個版本的操作方式完全一致，輸入內容和樣式設定互相獨立。",
-    "faq.5": "<b>多音字能保證全對嗎？</b><br>無法保證 100%。各版本內建詞典不同，多音字正確率也不同（完整詞典版最高）。用於教學請勾選「易錯點高亮」逐字核對，發現錯誤點擊預覽中對應的字即可改為正確讀音——每個版本的預覽區底部也有同樣的提醒。",
+    "f.1": "<b>九種音標</b>：漢語拼音、注音、耶魯、威妥瑪、國羅、西里爾…隨時換",
+    "f.2": "<b>教材式排版</b>：拼音在字上方，輕聲自動不標調（媽媽 mā ma）",
+    "f.3": "<b>一 / 不變調</b>：一個 → yí gè，也可切回本調",
+    "f.4": "<b>兒化雙模式</b>：花兒 huā er / huār，判錯點一下就改",
+    "f.5": "<b>臺灣讀音</b>：教育部辭典 1.5 萬詞差異，垃圾 ㄌㄜˋㄙㄜˋ",
+    "f.6": "<b>注音橫直排</b>：ㄅㄆㄇ 標在字上方，或豎排在字右側",
+    "f.7": "<b>簡繁轉換</b>：OpenCC 雙向，連地區用詞一起轉",
+    "f.8": "<b>A4 所見即所印</b>：自動分頁，匯出 PDF 不缺頁",
+    "f.9": "<b>易錯字標色</b>：多音字、的 / 地 / 得、一 / 不 加底色",
+    "t.mini": "輕量版", "t.pinyin": "主線版", "t.reco": "推薦",
+    "t.plus": "完整詞典版", "t.zhuyin": "注音版",
+    "t.r1": "體積", "t.r1v": "約 1 MB", "t.r2": "逐字注音",
+    "t.r3": "按詞連排", "t.r4": "成語 / 長尾詞成詞", "t.r4v": "部分",
+    "t.r5": "注音符號 / 臺灣讀音", "t.r5v": "✅ 預設開",
+    "t.r6": "簡 ⇄ 繁轉換", "t.r7": "適合",
+    "t.r7a": "只要注音排版", "t.r7b": "日常家用", "t.r7c": "老師 / 進階", "t.r7d": "港澳台 / 注音",
+    "faq.1": "<b>需要連網嗎？</b><br>不用。四個版本都是單一檔案，拼音引擎、詞典、臺灣讀音表、簡繁轉換資料全部內嵌，斷網雙擊就能用。只有在線字型、檢查引擎更新、第一次合併 PDF 需要連網，都不碰你的文章。",
+    "faq.2": "<b>手機上能用嗎？</b><br>能，介面會跟著螢幕寬度自動改成上下排列，翻頁變成連續滑動。手機裝不了本機字型，用內建的 Andika 拼音字型就行；閱讀模式的朗讀和跟讀也照常可用。",
+    "faq.3": "<b>文章能放多長？</b><br>單次最多 200 萬字。超過 3 萬字會自動進入長文模式，邊排版邊看、不卡介面；列印時可以選頁碼範圍，也可以分批列印（每批 100 頁）再合成一個 PDF。",
+    "faq.4": "<b>臺灣讀音從哪來？</b><br>教育部《重編國語辭典修訂本》（g0v 萌典開放資料），涵蓋約 1.5 萬個兩岸讀音不同的詞和近 200 個字，例如垃圾 ㄌㄜˋㄙㄜˋ、星期 ㄑ丨ˊ。拼音和注音模式都生效，隨時能切回普通話讀音。",
+    "faq.5": "<b>選錯了版本怎麼辦？</b><br>回到這一頁換就好（網址列去掉檔名按 Enter）。四個版本的操作完全一樣，輸入的文章和設定各自獨立儲存。",
     "ft.1": "開源免費（MIT）", "ft.2": "GitHub 原始碼", "ft.3": "也可以把任一版本檔案直接傳給別人，雙擊即用",
-    "prog.prep": "正在準備完整詞典版…（約 7 MB）", "prog.dl": "正在下載完整詞典版：<b>{p}%</b>（{a} / {t} MB），下載完成後自動進入…",
-    "prog.recv": "正在下載完整詞典版：已接收 <b>{a}</b> / 約 7 MB…", "prog.stall": "正在下載完整詞典版…已接收 <b>{a}</b> / 約 7 MB"
+    "prog.prep": "正在準備完整詞典版…（約 7.2 MB）", "prog.dl": "正在下載完整詞典版：<b>{p}%</b>（{a} / {t} MB），下載完成後自動進入…",
+    "prog.recv": "正在下載完整詞典版：已接收 <b>{a}</b> / 約 7.2 MB…", "prog.stall": "正在下載完整詞典版…已接收 <b>{a}</b> / 約 7.2 MB",
+
+    "v.same": "四個版本的介面、排版、列印、閱讀模式完全一樣，只差詞典大小和簡繁轉換。",
+    "f.10": "<b>點字改音</b>：輕聲、兒化、斷詞都能手動調",
+    "f.11": "<b>閱讀模式</b>：逐句高亮、朗讀、麥克風跟讀",
+    "f.12": "<b>純本機</b>：文章不上傳，斷網雙擊就能用",
+    "t.r3v1": "3 萬詞",
+    "t.r3v2": "33.7 萬詞",
+    "t.r8": "九種音標",
+    "t.r9": "注音芫荽 IVS",
+    "t.r10": "閱讀模式 / 朗讀跟讀",
+    "t.r11": "長文 / 分批列印",
+    "faq.6": "<b>多音字能全對嗎？</b><br>都做不到 100%，各版本詞典不同，準確率也不同（完整詞典版最高）。給孩子用之前，勾上「易錯字」過一遍，發現錯了點那個字就能改讀音。",
   },
   en: {
     "doc.title": "Pinyin & Zhuyin Annotator - Add pinyin or zhuyin above Chinese characters, textbook style",
@@ -337,54 +363,65 @@ var I18N = {
     "resume.used": "Last used: ", "resume.auto": "s — entering automatically",
     "resume.go": "Enter now", "resume.cancel": "Pick another",
     "v.badge": "Recommended",
-    "v.mini.name": "Lite", "v.mini.size": "~0.9 MB", "v.mini.go": "Open Lite",
-    "v.mini.li1": "Per-character pinyin", "v.mini.li2": "yī/bù tone sandhi, neutral tone, erhua",
-    "v.mini.li3": "UI: Simplified / Traditional / EN", "v.mini.li4": "A4 pagination, print / PDF",
-    "v.mini.li5": "No word segmentation", "v.mini.fit": "Best for: annotation only, old devices or tight bandwidth",
+    "v.mini.name": "Lite", "v.mini.size": "~1 MB", "v.mini.go": "Open Lite",
+    "v.mini.li1": "Smallest download — fine on old laptops and phones", "v.mini.li2": "Pinyin, Zhuyin and nine notations, switch anytime",
+    "v.mini.li3": "Read mode and print / PDF included", "v.mini.li4": "UI in Simplified / Traditional / English",
+    "v.mini.li5": "No word dictionary — per character only", "v.mini.fit": "Best for: annotation only, no grouping needed",
     "v.pinyin.name": "Standard", "v.pinyin.size": "~1.4 MB", "v.pinyin.go": "Open Standard",
-    "v.pinyin.li1": "Everything in Lite", "v.pinyin.li2": "Smart segmentation: words grouped, gaps between words",
-    "v.pinyin.li3": "Built-in 30k common words for accurate polyphones (银行 yín háng)",
-    "v.pinyin.li4": "Click a character to fix readings / re-segment",
-    "v.pinyin.li5": "Optional Taiwan readings & Zhuyin (ㄅㄆㄇ)",
+    "v.pinyin.li1": "30k common words, grouped like a textbook", "v.pinyin.li2": "Better polyphone accuracy (银行 yín háng)",
+    "v.pinyin.li3": "Click a character to fix it, split or join words",
+    "v.pinyin.li4": "Read mode, print / PDF, five copy formats",
+    "v.pinyin.li5": "Optional Zhuyin and Taiwan readings",
     "v.pinyin.fit": "Best for: everyday reading sheets (most families)",
-    "v.plus.name": "Full Dictionary", "v.plus.size": "~7 MB", "v.plus.go": "Open Full Dictionary",
-    "v.plus.li1": "Everything in Standard", "v.plus.li2": "Dictionary expanded to 337k words",
-    "v.plus.li3": "Idioms & proper nouns segmented as words (刻舟求剑, 黔驴技穷)",
-    "v.plus.li4": "One-click Simplified ↔ Traditional (OpenCC)",
-    "v.plus.li5": "Slower first load, then instant from browser cache",
-    "v.plus.fit": "Best for: teachers, advanced material, best segmentation",
-    "v.zhuyin.name": "Zhuyin", "v.zhuyin.size": "~2 MB", "v.zhuyin.go": "Open Zhuyin",
-    "v.zhuyin.li1": "Traditional Chinese UI by default (简 / EN switchable)",
-    "v.zhuyin.li2": "Zhuyin ㄅㄆㄇ, horizontal / vertical (right of character) layouts",
-    "v.zhuyin.li3": "Taiwan readings: MOE《重編國語辭典修訂本》",
-    "v.zhuyin.li4": "One-click Simplified ↔ Traditional (OpenCC)",
-    "v.zhuyin.li5": "Smart segmentation; switch back to Hanyu Pinyin",
-    "v.zhuyin.fit": "Best for: TW/HK/MO users, Zhuyin teaching, CSL learners",
+    "v.plus.name": "Full Dictionary", "v.plus.size": "~7.2 MB", "v.plus.go": "Open Full Dictionary",
+    "v.plus.li1": "337k words — idioms, names and places stay whole (刻舟求剑)", "v.plus.li2": "Everything in Standard",
+    "v.plus.li3": "One-click Simplified ⇄ Traditional",
+    "v.plus.li4": "Zhuyin, read mode, long-text printing included",
+    "v.plus.li5": "Slower first load, instant after that",
+    "v.plus.fit": "Best for: teachers, idioms, advanced material",
+    "v.zhuyin.name": "Zhuyin", "v.zhuyin.size": "~2.3 MB", "v.zhuyin.go": "Open Zhuyin",
+    "v.zhuyin.li1": "Opens in Traditional Chinese with Zhuyin",
+    "v.zhuyin.li2": "Horizontal / vertical, like Taiwan textbooks",
+    "v.zhuyin.li3": "Taiwan readings (MOE dictionary)",
+    "v.zhuyin.li4": "Simplified ⇄ Traditional + BpmfIansui IVS",
+    "v.zhuyin.li5": "Switch back to Hanyu Pinyin anytime",
+    "v.zhuyin.fit": "Best for: TW/HK/MO users, Zhuyin teaching",
     "sec.feat": "Key Features", "sec.cmp": "Which version?", "sec.faq": "FAQ",
-    "f.1": "<b>Textbook layout</b>: pinyin above characters, neutral tone unmarked (妈妈 mā ma)",
-    "f.2": "<b>yī/bù tone sandhi toggle</b>: 一个 → yí gè, or keep base tones",
-    "f.3": "<b>Erhua modes</b>: 花儿 huā er / huār, fix false positives with one click",
-    "f.4": "<b>Taiwan readings</b>: MOE dictionary, 15k cross-strait differences (垃圾 ㄌㄜˋㄙㄜˋ)",
-    "f.5": "<b>Zhuyin</b>: ㄅㄆㄇ with horizontal / vertical layouts — written above characters or stacked to their right",
-    "f.6": "<b>Simplified ↔ Traditional</b>: OpenCC conversion (Zhuyin / Full versions)",
-    "f.7": "<b>WYSIWYG A4</b>: automatic pagination, PDF export without cut-off pages",
-    "f.8": "<b>Mistake highlighting</b>: polyphones, 的/地/得, yī/bù shaded for proofreading",
-    "f.9": "<b>Runs locally</b>: nothing uploaded, works offline",
-    "t.mini": "Lite mini", "t.pinyin": "Standard pinyin", "t.reco": "rec.",
-    "t.plus": "Full plus", "t.zhuyin": "Zhuyin",
-    "t.r1": "Size", "t.r1v": "~0.9 MB", "t.r2": "Per-character pinyin",
-    "t.r3": "Smart segmentation", "t.r4": "Idioms / rare words", "t.r4v": "partial",
-    "t.r5": "Zhuyin / Taiwan readings", "t.r5v": "✅ default on",
-    "t.r6": "Simp ↔ Trad conversion", "t.r7": "Best for",
-    "t.r7a": "annotation only", "t.r7b": "daily family use", "t.r7c": "teachers / advanced", "t.r7d": "TW/HK/MO · Zhuyin",
-    "faq.1": "<b>Does it need internet?</b><br>No. All four versions are single-file HTML with the engine, dictionaries, Taiwan readings and OpenCC data embedded — they work offline; internet is only used for the optional LXGW font and update checks.",
-    "faq.2": "<b>Is my text uploaded?</b><br>Never. It is a pure front-end tool; everything runs in your browser with no requests to any server.",
-    "faq.3": "<b>Where do Taiwan readings come from?</b><br>The MOE《重編國語辭典修訂本》(g0v Moedict open data), covering ~15k words and ~200 characters that differ across the strait (垃圾 ㄌㄜˋㄙㄜˋ, 星期 ㄑ丨ˊ); works in both Pinyin and Zhuyin modes, switch back to mainland readings anytime.",
-    "faq.4": "<b>Picked the wrong version?</b><br>Just come back to this page (remove the file name from the address bar). All four versions work the same way; text and style settings are independent.",
-    "faq.5": "<b>Are polyphonic readings always correct?</b><br>No edition can guarantee 100%. Dictionaries differ across editions, so accuracy differs too (highest in the full-dictionary edition). For teaching, tick \"Highlight tricky spots\" and check character by character; click a wrong character in the preview to fix it — every edition shows the same reminder under its preview area.",
+    "f.1": "<b>Nine notations</b>: Pinyin, Zhuyin, Yale, Wade-Giles, GR, Cyrillic…",
+    "f.2": "<b>Textbook layout</b>: pinyin above characters, neutral tone unmarked (妈妈 mā ma)",
+    "f.3": "<b>yī/bù sandhi</b>: 一个 → yí gè, or keep base tones",
+    "f.4": "<b>Erhua modes</b>: 花儿 huā er / huār, fix a wrong guess in one click",
+    "f.5": "<b>Taiwan readings</b>: MOE dictionary, 15k word differences (垃圾 ㄌㄜˋㄙㄜˋ)",
+    "f.6": "<b>Zhuyin layouts</b>: ㄅㄆㄇ above each character, or stacked to the right",
+    "f.7": "<b>Simplified ⇄ Traditional</b>: OpenCC, regional vocabulary included",
+    "f.8": "<b>A4 WYSIWYG</b>: automatic pagination, no pages lost in the PDF",
+    "f.9": "<b>Tricky chars shaded</b>: polyphones, 的/地/得, 一/不",
+    "t.mini": "Lite", "t.pinyin": "Standard", "t.reco": "rec.",
+    "t.plus": "Full Dictionary", "t.zhuyin": "Zhuyin",
+    "t.r1": "Size", "t.r1v": "~1 MB", "t.r2": "Per-character pinyin",
+    "t.r3": "Word grouping", "t.r4": "Idioms / rare words", "t.r4v": "partial",
+    "t.r5": "Zhuyin / Taiwan readings", "t.r5v": "✅ on by default",
+    "t.r6": "Simplified ⇄ Traditional", "t.r7": "Best for",
+    "t.r7a": "annotation only", "t.r7b": "daily home use", "t.r7c": "teachers / advanced", "t.r7d": "TW·HK·MO / Zhuyin",
+    "faq.1": "<b>Does it need internet?</b><br>No. All four are single files with the engine, dictionaries, Taiwan readings and conversion data embedded — they work offline. Only online fonts, engine update checks and the first PDF merge go online, and none of them touch your text.",
+    "faq.2": "<b>Does it work on a phone?</b><br>Yes. The layout stacks vertically on narrow screens and paging becomes continuous scrolling. Phones can't install local fonts — just use the built-in Andika pinyin font; read mode, speech and mic follow-along work as usual.",
+    "faq.3": "<b>How long can the text be?</b><br>Up to 2 million characters at a time. Beyond 30,000 it switches to long-text mode and stays responsive; when printing you can pick a page range, or print in batches (100 pages each) and merge them into one PDF.",
+    "faq.4": "<b>Where do Taiwan readings come from?</b><br>The MOE 《重編國語辭典修訂本》 (g0v Moedict open data), covering ~15k words and ~200 characters that differ across the strait, such as 垃圾 ㄌㄜˋㄙㄜˋ and 星期 ㄑ丨ˊ. Works in both Pinyin and Zhuyin; switch back to mainland readings anytime.",
+    "faq.5": "<b>Picked the wrong version?</b><br>Come back to this page and pick again (drop the file name from the address bar). All four work the same way; text and settings are stored separately.",
     "ft.1": "Free & open source (MIT)", "ft.2": "GitHub source", "ft.3": "Any single file can be shared directly — just double-click to use",
-    "prog.prep": "Preparing Full Dictionary version… (~7 MB)", "prog.dl": "Downloading Full Dictionary: <b>{p}%</b> ({a} / {t} MB), entering automatically when done…",
-    "prog.recv": "Downloading Full Dictionary: <b>{a}</b> / ~7 MB received…", "prog.stall": "Downloading Full Dictionary… <b>{a}</b> / ~7 MB received"
+    "prog.prep": "Preparing Full Dictionary version… (~7.2 MB)", "prog.dl": "Downloading Full Dictionary: <b>{p}%</b> ({a} / {t} MB), entering automatically when done…",
+    "prog.recv": "Downloading Full Dictionary: <b>{a}</b> / ~7.2 MB received…", "prog.stall": "Downloading Full Dictionary… <b>{a}</b> / ~7.2 MB received",
+    "v.same": "Same interface, layout, printing and read mode in all four — only the dictionary and simplified/traditional conversion differ.",
+    "f.10": "<b>Click to fix</b>: neutral tone, erhua, word breaks",
+    "f.11": "<b>Read mode</b>: sentence highlight, speech, mic follow-along",
+    "f.12": "<b>Fully local</b>: nothing uploaded, works offline",
+    "t.r3v1": "30k words",
+    "t.r3v2": "337k words",
+    "t.r8": "Nine notations",
+    "t.r9": "BpmfIansui IVS",
+    "t.r10": "Read mode / speech",
+    "t.r11": "Long text / batch print",
+    "faq.6": "<b>Are polyphone readings always right?</b><br>None is 100%. Dictionaries differ by version, so accuracy does too (Full Dictionary is highest). Before using it with a child, turn on “Tricky chars”, and click any wrong character to fix its reading."
   }
 };
 function i18nT(key, def) {
@@ -508,7 +545,7 @@ function applyI18n() {
                   .replace("{t}", (total / 1048576).toFixed(1)));
                 progBar.style.width = (loaded / total * 100).toFixed(1) + "%";
               } else {
-                progDeterminate(i18nT("prog.recv", "正在下载完整词典版：已接收 <b>{a}</b> / 约 7 MB…").replace("{a}", (loaded / 1048576).toFixed(1)));
+                progDeterminate(i18nT("prog.recv", "正在下载完整词典版：已接收 <b>{a}</b> / 约 7.2 MB…").replace("{a}", (loaded / 1048576).toFixed(1)));
                 progBar.style.width = Math.min(loaded / 7340032 * 100, 96).toFixed(1) + "%";
               }
             }
@@ -523,7 +560,7 @@ function applyI18n() {
   function goPlus(file) {
     progShow();
     if (plusFetch.done) { location.href = file; return; }
-    if (!plusFetch.gotProgress) progIndet(i18nT("prog.prep", "正在准备完整词典版…（约 7 MB）"));
+    if (!plusFetch.gotProgress) progIndet(i18nT("prog.prep", "正在准备完整词典版…（约 7.2 MB）"));
     beginPlusFetch();
     var watch = setInterval(function () {
       if (plusFetch.done) { clearInterval(watch); location.href = file; return; }
@@ -531,7 +568,7 @@ function applyI18n() {
       if (plusFetch.visible && plusFetch.gotProgress && Date.now() - plusFetch.lastTick > 800) {
         progIndet(i18nT("prog.stall", "正在下载完整词典版…已接收 <b>{a}</b> / 约 7 MB").replace("{a}", (plusFetch.lastLoaded / 1048576).toFixed(1)));
       }
-    }, 300);
+  }, 300);
   }
 
   function go(v) {
