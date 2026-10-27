@@ -219,6 +219,22 @@
      分页态一旦裁剪就切掉首行调号（分页测量已留余量，纸张 .paper 自身的 hidden 兜底防溢出） */
   .pg-content { height: 100%; }
   .paper.continuous .pg-content { height: auto; }
+  /* ===== 对齐档位（左对齐 / 居中 / 诗词）=====
+     居中：每行各自居中——等长句（律诗、绝句、歌词）用它，标题作者自动居中；
+     诗词：块宽收到「最长未折行段落」，整块居中、行内左对齐——长短句（词、赋、现代诗）用它，
+           各行左边界齐、右边界参差。
+     块宽必须跨页统一（--ta-w 由 JS 测全文最长行后写入）。纯 CSS 的 display:table 会按
+     「本页自己」的最长行缩宽，实测三页 448/448/96，跨页会跳宽；display:grid 会把行高
+     从 64 撑到 163，分页必乱。两者都不用。
+     折行的段落加 .wrap 撑回版心宽（--pg-w）：否则它被挤进窄块里会多折几行，
+     与分页测量（按版心宽）不符，打印时内容溢出。 */
+  #preview .pg-content.mode-center > p, #print-area .pg-content.mode-center > p { text-align: center; }
+  #preview .pg-content.mode-poem, #print-area .pg-content.mode-poem { width: var(--ta-w, 100%); margin-inline: auto; }
+  #preview .pg-content.mode-poem > p, #print-area .pg-content.mode-poem > p { text-align: left; }
+  #preview .pg-content.mode-poem > p.wrap, #print-area .pg-content.mode-poem > p.wrap {
+    width: var(--pg-w, 100%);
+    margin-inline-start: calc((var(--ta-w, 0px) - var(--pg-w, 0px)) / 2);
+  }
   /* 排版基础样式必须同时覆盖 #print-area（打印输出区在 #preview 之外，
      否则打印 / 导出 PDF 会丢掉字号、字体、间距，变成默认小字） */
   #preview, #print-area {
@@ -447,6 +463,10 @@
     /* 打印输出走 #print-area（始终包含全部页面 / 全文），预览区按当前状态只显示一页 */
     .layout, #pages-wrap { display: none !important; }
     #print-area { display: block; }
+    /* 打印时纸张换成 A4（210mm - 2×10mm = 190mm ≈ 718px），与屏幕版心不同：
+       「诗词」档的版心宽（--pg-w）是渲染时按屏幕算的，手机窄屏只有 270 多 px，
+       不复位会让折行段落按手机宽度排、右边被裁掉。 */
+    #print-area .pg-content.mode-poem, #preview .pg-content.mode-poem { --pg-w: 190mm; }
     /* 预览的分页即打印的分页：一张 .paper = 一张 A4 纸 */
     .paper {
       border: none; border-radius: 0; box-shadow: none;
@@ -654,6 +674,14 @@
           <label class="lbl" for="paragap" data-i18n="l.paragap">段间距</label>
           <input type="range" id="paragap" min="0" max="30" step="2" value="12">
           <span class="val" id="paragap-val">12px</span>
+        </div>
+        <div class="ctl" id="ta-ctl">
+          <label class="lbl" data-i18n="l.align">对齐</label>
+          <div class="seg" role="group" aria-label="对齐" data-i18n-aria="l.align" data-i18n-title="align.tip" title="左对齐：默认。居中：每行各自居中，适合律诗、绝句、歌词。诗词：各行左边界对齐、整块居中，适合词、赋、现代诗">
+            <button type="button" id="ta-left" class="on" data-i18n="align.left">左对齐</button>
+            <button type="button" id="ta-center" data-i18n="align.center">居中</button>
+            <button type="button" id="ta-poem" data-i18n="align.poem">诗词</button>
+          </div>
         </div>
         <div class="ctl">
           <label class="lbl" data-i18n="l.showpy">音标</label>
@@ -956,6 +984,9 @@ var I18N = {
     "zydir.v": "直排",
     "l.lineh": "行間距",
     "l.paragap": "段間距",
+    "l.align": "對齊",
+    "align.left": "左對齊", "align.center": "置中", "align.poem": "詩詞",
+    "align.tip": "左對齊：預設。置中：每行各自置中，適合律詩、絕句、歌詞。詩詞：各行左邊界對齊、整塊置中，適合詞、賦、現代詩",
     "l.showpy": "音標",
     "ck.showpy": "顯示",
     "l.hi": "易錯字",
@@ -1196,6 +1227,9 @@ var I18N = {
     "zydir.v": "Vertical",
     "l.lineh": "Line spacing",
     "l.paragap": "Paragraph spacing",
+    "l.align": "Alignment",
+    "align.left": "Left", "align.center": "Center", "align.poem": "Poem",
+    "align.tip": "Left: the default. Center: each line sits centred — good for regular verse and lyrics. Poem: all lines share one left edge and the block sits centred — good for ci, fu and free verse.",
     "l.showpy": "Phonetics",
     "ck.showpy": "Show",
     "l.hi": "Tricky chars",
@@ -1485,6 +1519,14 @@ function applyI18n() {
   var overrides = {};
   var defaults = [];
   var pages = [];
+  // —— 对齐档位 ——
+  // left 左对齐（默认）| center 每行各自居中 | poem 块居中 + 行内左对齐
+  var alignMode = "left";
+  // 「诗词」档的测宽累加器：maxW = 最长「未折行段落」的宽度、singles = 未折行段落数。
+  // 分页测量时逐段累加（长文模式跨块累加），渲染后据此写 CSS 变量 --ta-w。
+  var POEM = { maxW: 0, singles: 0 };
+  function poemReset() { POEM.maxW = 0; POEM.singles = 0; }
+  function alignClass() { return alignMode === "left" ? "" : " mode-" + alignMode; }
   // —— 中文分词 ——
   var segScheme = "none";  // "smart" 智能分词（最大概率）| "reverse" 逆向最大匹配 | "none" 逐字注音（默认）
   var segOverrides = {};    // 手动分词调整：absIdx -> "cut"(此字前断词) | "join"(与后一字连成词)
@@ -2560,10 +2602,11 @@ function applyI18n() {
         var n = kids[i];
         if (n.nodeType !== 1) continue;
         var t = n.offsetTop;
-        if (!groups.length || Math.abs(t - groups[groups.length - 1].top) > 3) groups.push({ top: t, html: "" });
+        if (!groups.length || Math.abs(t - groups[groups.length - 1].top) > 3) groups.push({ top: t, html: "", els: [] });
         groups[groups.length - 1].html += n.outerHTML;
+        groups[groups.length - 1].els.push(n);
       }
-      if (groups.length === 1) units.push({ top: groups[0].top, html: el.outerHTML });
+      if (groups.length === 1) units.push({ top: groups[0].top, html: el.outerHTML, els: groups[0].els });
       else for (var g = 0; g < groups.length; g++) units.push(groups[g]);
     }
     var kids = pEl.childNodes;
@@ -2571,7 +2614,7 @@ function applyI18n() {
       var n = kids[i];
       if (n.nodeType !== 1) continue;
       if (n.classList && n.classList.contains("py-word")) handleWord(n);
-      else units.push({ top: n.offsetTop, html: n.outerHTML });
+      else units.push({ top: n.offsetTop, html: n.outerHTML, els: [n] });
     }
     return units;
   }
@@ -2585,6 +2628,7 @@ function applyI18n() {
     return out;
   }
   function paginate(text) {
+    poemReset();
     return packParagraphs(buildParas(text));
   }
   // 对一组段落（含全文绝对偏移）做行测量与逐行装箱，返回本组的页 HTML 数组。
@@ -2598,6 +2642,8 @@ function applyI18n() {
     meas.style.cssText = "position:absolute;left:-99999px;top:0;width:" + PAGE_CONTENT_W + "px;visibility:hidden;";
     preview.appendChild(meas);
     var gap = 12, met = [];
+    // 只有「诗词」档才需要逐字取几何（每字一个 rect，长文下开销可观，其余档位跳过）
+    var poem = alignMode === "poem";
     // 测量期间必须临时取消预览列的 zoom（fitPagesZoom 为适配列宽所设）：
     // zoom 会缩放测量容器内的部分布局值，使装箱行高小于真实值；打印 / 导出 PDF
     // 时 zoom 被剥离，按真实行高渲染，于是每页内容超出物理页高、溢出成大量
@@ -2615,8 +2661,20 @@ function applyI18n() {
       // 每行的底部 = 下一行顶部，末行底部 = 段落总高
       var units = collectUnits(pEl), lines = [];
       for (var u = 0; u < units.length; u++) {
-        if (!lines.length || units[u].top - lines[lines.length - 1].top > 3) lines.push({ top: units[u].top, units: [] });
-        lines[lines.length - 1].units.push(units[u].html);
+        if (!lines.length || units[u].top - lines[lines.length - 1].top > 3) {
+          lines.push({ top: units[u].top, units: [], left: Infinity, right: -Infinity });
+        }
+        var ln = lines[lines.length - 1];
+        ln.units.push(units[u].html);
+        // 行宽 = 本视觉行所有排版单元的外接矩形并集（拼音 / 注音下每个字是独立 span，
+        // 只取第一个 rect 会得到「一个字的宽度」）。测量容器 zoom 已归 1，rect 即真实 CSS 像素。
+        if (poem) {
+          for (var e = 0; e < units[u].els.length; e++) {
+            var rc = units[u].els[e].getBoundingClientRect();
+            if (rc.left < ln.left) ln.left = rc.left;
+            if (rc.right > ln.right) ln.right = rc.right;
+          }
+        }
       }
       for (var L = 0; L < lines.length; L++) lines[L].bot = L < lines.length - 1 ? lines[L + 1].top : h;
       // 行几何归一：unit 顶带「汉字在行盒内垂直居中」的系统性偏移（≈(行高-字高)/2），
@@ -2630,7 +2688,17 @@ function applyI18n() {
           lines[L3].bot = L3 < lines.length - 1 ? lines[L3 + 1].top - top0 : h;
         }
       }
-      met.push({ lines: lines, gapBefore: c.cont ? 0 : gap });
+      // 「诗词」档块宽只认「未折行段落」：一句特别长的话自己折行、不参与取最大值，
+      // 否则一句长句会把块宽撑到满版心，其余短句全缩在左边（等于没居中）。
+      // 折行段落改加 .wrap 撑回版心宽，见 CSS。
+      if (poem && lines.length) {
+        if (lines.length === 1) {
+          var lw = lines[0].right - lines[0].left;
+          if (lw > POEM.maxW) POEM.maxW = lw;
+          POEM.singles++;
+        }
+      }
+      met.push({ lines: lines, gapBefore: c.cont ? 0 : gap, wrap: poem && lines.length > 1 });
     }
     preview.removeChild(meas);
     preview.style.zoom = savedZoom;
@@ -2653,7 +2721,7 @@ function applyI18n() {
         }
         var frag = "";
         for (var L2 = idx; L2 < j; L2++) frag += para.lines[L2].units.join("");
-        cur.push("<p>" + frag + "</p>");
+        cur.push("<p" + (para.wrap ? ' class="wrap"' : "") + ">" + frag + "</p>");
         acc = y0 + para.lines[j - 1].bot - base;
         idx = j;
       }
@@ -2671,7 +2739,7 @@ function applyI18n() {
   function lmStyleStamp() {
     return [$("fontsize").value, $("fontfamily").value, $("pyfont").value, $("chargap").value,
       $("lineh").value, $("paragap").value, $("show-py").checked ? 1 : 0, $("hi-toggle").checked ? 1 : 0,
-      toneSandhi ? 1 : 0, erhuaMode, segScheme, phonetic, zyDir, twStd ? 1 : 0].join("|");
+      toneSandhi ? 1 : 0, erhuaMode, segScheme, phonetic, zyDir, twStd ? 1 : 0, alignMode].join("|");
   }
   // 超长段落切分：优先在句末标点处断开；cont=1 的续排块段距为 0（CSS p.cont 配合）
   function lmSplitParas(paras) {
@@ -2838,11 +2906,12 @@ function applyI18n() {
       }
     }
     if (base >= 0) {
-      preview.innerHTML = '<div class="paper"><div class="pg-content">' + LM.chunkPages[base][lp] + "</div></div>";
+      preview.innerHTML = '<div class="paper"><div class="pg-content' + alignClass() + '">' + LM.chunkPages[base][lp] + "</div></div>";
     } else {
-      preview.innerHTML = '<div class="paper"><div class="pg-content"><p class="lm-wait">' + esc(i18nT("lm.wait", "正在排版，请稍候…")) + "</p></div></div>";
+      preview.innerHTML = '<div class="paper"><div class="pg-content' + alignClass() + '"><p class="lm-wait">' + esc(i18nT("lm.wait", "正在排版，请稍候…")) + "</p></div></div>";
     }
     printArea.innerHTML = "";   // 长文模式打印 DOM 在打印时按范围填充
+    applyAlignVars(false);      // 块宽跨块累加（POEM），已排好的页共用同一值
     lmLabel();
     lmUpdateBanner();
     fitPagesZoom();
@@ -2854,6 +2923,7 @@ function applyI18n() {
       LM.stamp = st;
       LM.chunkPages.fill(null); LM.done = 0; LM.dirty = {}; LM.procChars = 0; LM.pageStart = [0];
       hiSet = $("hi-toggle").checked ? {} : null;
+      poemReset();   // 块宽重新累加：样式变了，最长行也跟着变
       LM.est = Math.ceil(LM.total / 550);
     }
     lmWrapOverrides();          // onReadingsChanged 等路径会整体替换 overrides 对象
@@ -2877,6 +2947,7 @@ function applyI18n() {
       procChars: 0, est: 0, stamp: null, chain: Promise.resolve()
     };
     LM.chunkPages = new Array(LM.chunks.length).fill(null);
+    poemReset();   // 新文档：块宽从零累加
     LM.est = Math.ceil(LM.total / 550);
     overrides = {}; defaults = []; segOverrides = {}; erhuaOverrides = {}; curBounds = {};
     lmWrapOverrides();
@@ -2915,7 +2986,7 @@ function applyI18n() {
       var s0 = LM.pageStart[ci], len = LM.chunkPages[ci].length;
       for (var lp = 0; lp < len; lp++) {
         var g = s0 + lp;   // 全局页号（0 基）
-        if (g >= a - 1 && g <= b - 1) parts.push('<div class="paper"><div class="pg-content">' + LM.chunkPages[ci][lp] + "</div></div>");
+        if (g >= a - 1 && g <= b - 1) parts.push('<div class="paper"><div class="pg-content' + alignClass() + '">' + LM.chunkPages[ci][lp] + "</div></div>");
       }
     }
     printArea.innerHTML = parts.join("");
@@ -3042,6 +3113,72 @@ function applyI18n() {
     return !!(window.matchMedia && window.matchMedia("(max-width: 640px)").matches);
   }
 
+  // ===== 「诗词」档：块宽写进 CSS 变量（--ta-w 块宽 / --pg-w 版心宽）=====
+  // 分页模式的数值来自 packParagraphs 的测量累加（POEM，跨页/跨块统一）；
+  // 连续排版与窄屏没有分页测量，就地量已渲染的段落。必须早于 fitPagesZoom ——
+  // 测量要求 zoom = 1（zoom 会缩放 rect，实测 7 字绝句因此被折成 8 行）。
+  function measurePoemFromDom() {
+    var out = { maxW: 0, singles: 0 };
+    var ps = preview.querySelectorAll(".pg-content > p:not(.empty-tip):not(.lm-wait)");
+    if (!ps.length) return out;
+    var savedZoom = preview.style.zoom || "";
+    preview.style.zoom = "1";
+    for (var i = 0; i < ps.length; i++) {
+      var p = ps[i], kids = p.childNodes, lines = [], j;
+      for (j = 0; j < kids.length; j++) {
+        if (kids[j].nodeType !== 1) continue;
+        var rc = kids[j].getBoundingClientRect();
+        if (!rc.width && !rc.height) continue;
+        if (!lines.length || Math.abs(rc.top - lines[lines.length - 1].top) > 3) {
+          lines.push({ top: rc.top, left: rc.left, right: rc.right });
+        } else {
+          var l = lines[lines.length - 1];
+          if (rc.left < l.left) l.left = rc.left;
+          if (rc.right > l.right) l.right = rc.right;
+        }
+      }
+      if (!lines.length) continue;
+      p.classList.toggle("wrap", lines.length > 1);
+      if (lines.length === 1) {
+        out.singles++;
+        var w = lines[0].right - lines[0].left;
+        if (w > out.maxW) out.maxW = w;
+      }
+    }
+    preview.style.zoom = savedZoom;
+    return out;
+  }
+  function applyAlignVars(continuous) {
+    if (alignMode !== "poem") {
+      preview.style.removeProperty("--ta-w");
+      preview.style.removeProperty("--pg-w");
+      return;
+    }
+    var contentEl = preview.querySelector(".pg-content");
+    if (!contentEl) return;
+    // 版心宽 = .paper 内容盒宽（桌面分页态实测 716）。.wrap 段落按它撑回整宽——
+    // 与「未设块宽时段落自然撑满」完全一致，因此不会引入新的折行差异
+    var paperEl = contentEl.parentElement, pgW = PAGE_CONTENT_W;
+    if (paperEl) {
+      var pcs = getComputedStyle(paperEl);
+      var w0 = paperEl.clientWidth - (parseFloat(pcs.paddingLeft) || 0) - (parseFloat(pcs.paddingRight) || 0);
+      if (w0 > 0) pgW = w0;
+    }
+    var maxW = POEM.maxW, singles = POEM.singles;
+    if (continuous) {
+      var m = measurePoemFromDom();
+      maxW = m.maxW;
+      singles = m.singles;
+    }
+    preview.style.setProperty("--pg-w", pgW + "px");
+    if (!singles) {
+      // 全文都是长段落（散文）：没有可参照的短行，不设块宽，等同左对齐
+      preview.style.removeProperty("--ta-w");
+      return;
+    }
+    preview.style.setProperty("--ta-w", Math.min(Math.ceil(maxW) + 2, pgW) + "px");
+  }
+
   function renderView() {
     /* 长文模式入口：粘贴 / 导入超 3 万字自动转入；长文状态下输入框被替换为摘要，
        若检测到输入框内容与摘要不符（清空 / 换新文件），视情况退出或重入长文模式 */
@@ -3083,14 +3220,16 @@ function applyI18n() {
       curBounds = {};
       if (curPage >= pages.length) curPage = Math.max(0, pages.length - 1);
       if (curPage < 0) curPage = 0;
+      var cls = alignClass();
       // 预览只显示当前页（分页模式配翻页栏）；打印输出区始终装全部页面
-      preview.innerHTML = '<div class="paper"><div class="pg-content">' + pages[curPage] + "</div></div>";
+      preview.innerHTML = '<div class="paper"><div class="pg-content' + cls + '">' + pages[curPage] + "</div></div>";
       pgLabel.textContent = i18nT("u.page", "{a} / {b} 页").replace("{a}", curPage + 1).replace("{b}", pages.length);
       var allHtml = "";
       for (var p2 = 0; p2 < pages.length; p2++) {
-        allHtml += '<div class="paper"><div class="pg-content">' + pages[p2] + "</div></div>";
+        allHtml += '<div class="paper"><div class="pg-content' + cls + '">' + pages[p2] + "</div></div>";
       }
       printArea.innerHTML = allHtml;
+      applyAlignVars(false);   // 块宽（--ta-w）来自 paginate 的测量累加，跨页统一
     } else {
       // 连续滚动 / 窄屏 / 空内容：单张连续纸张，不分子页（窄屏宽度由媒体查询自适应）
       pages = [];
@@ -3105,8 +3244,11 @@ function applyI18n() {
         }
         off += par.length + 1;
       }
-      preview.innerHTML = '<div class="paper continuous"><div class="pg-content">' +
+      preview.innerHTML = '<div class="paper continuous"><div class="pg-content' + alignClass() + '">' +
         (html || '<p class="empty-tip">' + i18nT("empty.tip", "贴好文章，拼音就显示在这里") + '</p>') + "</div></div>";
+      // 连续排版没有分页测量，块宽就地量已渲染段落（同时给折行段落补 .wrap）；
+      // 必须在复制到打印区之前跑，否则 .wrap 类不会带进打印 DOM
+      applyAlignVars(true);
       printArea.innerHTML = text.trim() ? preview.innerHTML : "";
       pageNav.classList.add("scroll-mode");   // 连续滚动无页码，只留方式切换
     }
@@ -3961,6 +4103,23 @@ function applyI18n() {
     setZyDir("v");
     renderView();
   });
+  // 对齐档位：左对齐（默认）/ 居中（每行各自居中）/ 诗词（块居中 + 行内左对齐）。
+  // 切换后必须重排：块宽要重测，折行段落的 .wrap 类也在渲染时按新块宽重新判定
+  function syncAlignButtons() {
+    $("ta-left").className = alignMode === "left" ? "on" : "";
+    $("ta-center").className = alignMode === "center" ? "on" : "";
+    $("ta-poem").className = alignMode === "poem" ? "on" : "";
+  }
+  function setAlign(v) {
+    if (v !== "center" && v !== "poem") v = "left";
+    if (alignMode === v) return;
+    alignMode = v;
+    syncAlignButtons();
+    renderView();
+  }
+  $("ta-left").addEventListener("click", function () { setAlign("left"); });
+  $("ta-center").addEventListener("click", function () { setAlign("center"); });
+  $("ta-poem").addEventListener("click", function () { setAlign("poem"); });
   $("show-py").addEventListener("change", function () {
     preview.classList.toggle("no-show-pinyin", !this.checked);
     renderView();   // 隐藏拼音后行高骤减，须重新分页
@@ -4007,6 +4166,9 @@ function applyI18n() {
     cyrOpts.tone = true; syncCyrButtons();
     syncPhScheme("py");
     setZyDir("h");
+    // 对齐回到左对齐
+    alignMode = "left";
+    syncAlignButtons();
     // 读音标准：恢复大陆读音
     setTwStd(false);
     // 简繁转换：恢复简体 ⇆ 标准繁体、不转词汇
@@ -4046,6 +4208,7 @@ function applyI18n() {
       wgsU: wgsOpts.u,
       cyrTone: cyrOpts.tone,
       zydir: zyDir,
+      align: alignMode,
       tw: twStd,
       ocv: ocVariant(),
       ocp: $("oc-phrases").checked
@@ -4129,6 +4292,9 @@ function applyI18n() {
     if (typeof saved.cyrTone === "boolean") cyrOpts.tone = saved.cyrTone;
     syncWgsButtons();
     if (saved.zydir === "h" || saved.zydir === "v") setZyDir(saved.zydir);
+    // 对齐档位
+    alignMode = (saved.align === "center" || saved.align === "poem") ? saved.align : "left";
+    syncAlignButtons();
     // 读音标准（台湾读音差异表为懒加载，恢复后异步重渲染）
     if (saved.tw === true || saved.tw === false) setTwStd(saved.tw);
     else if (window.__VARIANT && window.__VARIANT.tw) setTwStd(true);                // zhuyin 版默认台湾读音
