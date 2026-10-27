@@ -235,6 +235,58 @@
     width: var(--pg-w, 100%);
     margin-inline-start: calc((var(--ta-w, 0px) - var(--pg-w, 0px)) / 2);
   }
+  /* ===== 「诗词」档的逐行调整 =====
+     桌面：版心外有 38px 留白，放一列行号，点号改这一行；
+     手机：窄屏 .paper 只有 16px 留白（放不下两位数），改为长按整行。
+     两个入口共用同一个菜单、同一份 perLine 状态、同一套重排逻辑。 */
+  #preview .pg-content, #print-area .pg-content { position: relative; }
+  .ln {
+    position: absolute; left: -34px; width: 26px;   /* 落在 .paper 左 padding 内，绝不挤压版心 */
+    display: flex; align-items: center; justify-content: flex-end;
+    font-size: 11px; font-variant-numeric: tabular-nums;
+    color: var(--ink-soft); opacity: .72; cursor: pointer;
+    -webkit-user-select: none; user-select: none;
+  }
+  .ln:hover { color: var(--accent-dark); opacity: 1; }
+  /* 改过对齐的行：桌面让行号变色，手机没有行号就用行首小圆点 */
+  .ln.mark { color: var(--accent-dark); opacity: 1; font-weight: 600; }
+  /* 改过对齐的行：行首小圆点（桌面手机一致，替代手机上看不到的「行号变红」） */
+  .ln-dot {
+    position: absolute; left: -7px; width: 3px; height: 3px; border-radius: 50%;
+    background: var(--accent); pointer-events: none;
+  }
+  /* 长按已识别（350ms）：先给一层淡底色，否则用户不知道是没按到还是没生效 */
+  .pg-content > p.ln-press { background: var(--accent-light); border-radius: 4px; }
+  #ln-menu {
+    position: fixed; display: none; z-index: 220; min-width: 132px;
+    background: #fff; border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: 0 4px 18px rgba(90, 70, 40, .14); padding: 8px;
+  }
+  #ln-menu.open { display: block; }
+  #ln-menu .ln-m-title { font-size: 12px; color: var(--ink-soft); padding: 2px 8px 6px; white-space: nowrap; }
+  #ln-menu button {
+    display: block; width: 100%; text-align: left; border: none; background: none;
+    padding: 7px 10px; font-size: 14px; border-radius: 6px;
+  }
+  #ln-menu button:hover { background: var(--accent-light); }
+  #ln-menu button.cur { background: var(--accent-light); color: var(--accent-dark); }
+  /* 逐行调整的一次性提示条（只在触屏出现，点「知道了」后不再打扰） */
+  #ta-hint {
+    display: none; align-items: center; gap: 10px; margin-bottom: 10px; padding: 7px 10px;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--accent-light);
+    font-size: 12px; color: var(--ink);
+  }
+  #ta-hint button { font-size: 12px; padding: 4px 8px; flex-shrink: 0; }
+  /* 触屏设备：行号列换成隐形热区（长按）。选择禁用必须同时上——只加
+     -webkit-touch-callout 挡不住 iOS 的文字选择手柄与放大镜，会和 500ms 计时器抢动作 */
+  body.ta-touch .ln { display: none; }
+  body.ta-lp:not(.reading-mode) .pg-content {
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  }
+  /* 阅读模式是给孩子看的：不许改排版 */
+  body.reading-mode .ln, body.reading-mode .ln-dot { display: none; }
+  @media (max-width: 640px) { .ln { display: none; } }
+  @media print { .ln, .ln-dot, #ln-menu, #ta-hint { display: none !important; } }
   /* 排版基础样式必须同时覆盖 #print-area（打印输出区在 #preview 之外，
      否则打印 / 导出 PDF 会丢掉字号、字体、间距，变成默认小字） */
   #preview, #print-area {
@@ -764,6 +816,12 @@
         <span class="pg-mobile-hint" data-i18n="pv.mobilehint">屏幕较窄，已自动采用连续排版，上下滑动即可阅读</span>
       </div>
     </div>
+    <!-- 「诗词」档的逐行调整提示（仅触屏、只出现一次）：隐形热区没有任何视觉线索，
+         这条提示是它唯一的发现路径 -->
+    <div id="ta-hint" class="no-print">
+      <span style="flex:1;" data-i18n="align.hint">长按任意一行，可单独调整</span>
+      <button type="button" id="ta-hint-ok" data-i18n="hint.ok">知道了</button>
+    </div>
     <div id="pages-wrap">
       <div id="preview" aria-live="polite"><div class="paper"><div class="pg-content"><p class="empty-tip" data-i18n="empty.tip">贴好文章，拼音就显示在这里</p></div></div></div>
     </div>
@@ -987,6 +1045,10 @@ var I18N = {
     "l.align": "對齊",
     "align.left": "左對齊", "align.center": "置中", "align.poem": "詩詞",
     "align.tip": "左對齊：預設。置中：每行各自置中，適合律詩、絕句、歌詞。詩詞：各行左邊界對齊、整塊置中，適合詞、賦、現代詩",
+    "align.hint": "長按任意一行，可單獨調整",
+    "hint.ok": "知道了",
+    "ln.menu.follow": "跟隨全文", "ln.menu.center": "置中", "ln.menu.left": "左對齊",
+    "ln.title": "第 {n} 行的對齊",
     "l.showpy": "音標",
     "ck.showpy": "顯示",
     "l.hi": "易錯字",
@@ -1230,6 +1292,10 @@ var I18N = {
     "l.align": "Alignment",
     "align.left": "Left", "align.center": "Center", "align.poem": "Poem",
     "align.tip": "Left: the default. Center: each line sits centred — good for regular verse and lyrics. Poem: all lines share one left edge and the block sits centred — good for ci, fu and free verse.",
+    "align.hint": "Long-press a line to adjust it",
+    "hint.ok": "Got it",
+    "ln.menu.follow": "Same as text", "ln.menu.center": "Center", "ln.menu.left": "Left",
+    "ln.title": "Line {n} alignment",
     "l.showpy": "Phonetics",
     "ck.showpy": "Show",
     "l.hi": "Tricky chars",
@@ -1527,6 +1593,14 @@ function applyI18n() {
   var POEM = { maxW: 0, singles: 0 };
   function poemReset() { POEM.maxW = 0; POEM.singles = 0; }
   function alignClass() { return alignMode === "left" ? "" : " mode-" + alignMode; }
+  // 逐行覆盖：行文本（去空白）-> "center" | "left"，缺省即「跟随全文」。
+  // 按文本存而不按行号存：用户删掉一行，行号会全部错位，设置就串到别的行去了。
+  var perLine = {};
+  var TAHINT_KEY = "py-align-hint";
+  // 触屏设备（手机 / 平板）：行号列换成「长按整行」的隐形热区
+  var isTouchOnly = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  if (isTouchOnly) { try { document.body.classList.add("ta-touch"); } catch (eTT) {} }
+  function lineKey(s) { return (s || "").replace(/[\s\u00a0]+/g, ""); }
   // —— 中文分词 ——
   var segScheme = "none";  // "smart" 智能分词（最大概率）| "reverse" 逆向最大匹配 | "none" 逐字注音（默认）
   var segOverrides = {};    // 手动分词调整：absIdx -> "cut"(此字前断词) | "join"(与后一字连成词)
@@ -2698,7 +2772,7 @@ function applyI18n() {
           POEM.singles++;
         }
       }
-      met.push({ lines: lines, gapBefore: c.cont ? 0 : gap, wrap: poem && lines.length > 1 });
+      met.push({ lines: lines, gapBefore: c.cont ? 0 : gap, wrap: poem && lines.length > 1, text: c.text });
     }
     preview.removeChild(meas);
     preview.style.zoom = savedZoom;
@@ -2721,7 +2795,11 @@ function applyI18n() {
         }
         var frag = "";
         for (var L2 = idx; L2 < j; L2++) frag += para.lines[L2].units.join("");
-        cur.push("<p" + (para.wrap ? ' class="wrap"' : "") + ">" + frag + "</p>");
+        // 「诗词」档才写 data-c（跨页续排片段标记，行号跳过它）与逐行对齐的内联样式；
+        // 左对齐 / 居中档位不加任何属性，保证与改动前的产物逐字节一致
+        var pl = poem ? perLine[lineKey(para.text)] : "";
+        cur.push("<p" + (para.wrap ? ' class="wrap"' : "") + (poem && idx > 0 ? ' data-c="1"' : "") +
+          (pl ? ' style="text-align:' + pl + '"' : "") + ">" + frag + "</p>");
         acc = y0 + para.lines[j - 1].bot - base;
         idx = j;
       }
@@ -3179,6 +3257,220 @@ function applyI18n() {
     preview.style.setProperty("--ta-w", Math.min(Math.ceil(maxW) + 2, pgW) + "px");
   }
 
+  // ===== 逐行调整：桌面行号 / 手机长按 + 共用菜单 =====
+  // 行号只用来「指出是哪一行」，真正的状态在 perLine（按行文本存）。
+  function pText(p) {
+    var s = "";
+    (function walk(n) {
+      for (var i = 0; i < n.childNodes.length; i++) {
+        var c = n.childNodes[i];
+        if (c.nodeType === 3) { s += c.nodeValue; continue; }
+        if (c.nodeType !== 1) continue;
+        if (c.tagName === "RT" || c.tagName === "RP") continue;   // 拼音 / 注音不属于正文
+        walk(c);
+      }
+    })(p);
+    return s;
+  }
+  function pageParaCount(html) {
+    var a = html.match(/<p/g), b = html.match(/data-c="1"/g);
+    return (a ? a.length : 0) - (b ? b.length : 0);
+  }
+  function lineMenuTitle(n) { return i18nT("ln.title", "第 {n} 行的对齐").replace("{n}", n); }
+  // 段落编号（从 1 起，跨页连续，续排片段不占号）：长按时没有行号可读，只能就地数
+  function paraNumber(p) {
+    var g = p.parentNode, n = 1, i, kids;
+    if (pages.length) for (i = 0; i < curPage && i < pages.length; i++) n += pageParaCount(pages[i]);
+    kids = g.children;
+    for (i = 0; i < kids.length; i++) {
+      if (kids[i] === p) break;
+      if (kids[i].tagName === "P" && kids[i].getAttribute("data-c") !== "1") n++;
+    }
+    return n;
+  }
+  function paraOf(el) {
+    while (el && el !== preview) {
+      if (el.tagName === "P" && el.parentNode && el.parentNode.classList &&
+        el.parentNode.classList.contains("pg-content")) return el;
+      el = el.parentNode;
+    }
+    return null;
+  }
+  function renderLineNumbers() {
+    var olds = preview.querySelectorAll(".ln, .ln-dot");
+    for (var o = 0; o < olds.length; o++) olds[o].parentNode.removeChild(olds[o]);
+    // 长文模式不编号：那里是几万字的文章，不是诗词，编号数以千计还跨块
+    if (alignMode !== "poem" || LM) return;
+    if (document.body.classList.contains("reading-mode")) return;
+    var g = preview.querySelector(".pg-content");
+    if (!g) return;
+    var numbers = !isTouchOnly;   // 触屏没有行号列：靠长按，只保留「改过」的小圆点
+    var start = 1, i;
+    if (pages.length) for (i = 0; i < curPage && i < pages.length; i++) start += pageParaCount(pages[i]);
+    var kids = Array.prototype.slice.call(g.children), n = start;
+    for (i = 0; i < kids.length; i++) {
+      var p = kids[i];
+      if (p.tagName !== "P" || p.__ln) continue;
+      if (p.className.indexOf("empty-tip") >= 0 || p.className.indexOf("lm-wait") >= 0) continue;
+      if (p.getAttribute("data-c") === "1") continue;   // 跨页续排片段不重复编号
+      var lh = parseFloat(getComputedStyle(p).lineHeight) || 0;
+      p.__ln = n;
+      var marked = !!perLine[lineKey(pText(p))];
+      if (numbers) {
+        var ln = document.createElement("div");
+        ln.className = "ln" + (marked ? " mark" : "");
+        ln.textContent = n;
+        ln.style.top = p.offsetTop + "px";
+        ln.style.height = lh + "px";
+        ln.setAttribute("title", lineMenuTitle(n));
+        ln.setAttribute("data-n", n);
+        g.appendChild(ln);
+      } else if (marked) {
+        var dot = document.createElement("div");
+        dot.className = "ln-dot";
+        dot.style.top = (p.offsetTop + Math.max(0, (lh - 3) / 2)) + "px";
+        g.appendChild(dot);
+      }
+      n++;
+    }
+  }
+  // —— 菜单：三选项（跟随全文 / 居中 / 左对齐），不做二态循环——
+  // 「跟随全文」必须能回到默认，否则误点一行就再也恢复不了
+  var lnMenu = null, lnMenuFor = null;
+  function ensureLnMenu() {
+    if (lnMenu) return lnMenu;
+    lnMenu = document.createElement("div");
+    lnMenu.id = "ln-menu";
+    lnMenu.innerHTML = '<div class="ln-m-title"></div>' +
+      '<button type="button" data-v="follow"></button>' +
+      '<button type="button" data-v="center"></button>' +
+      '<button type="button" data-v="left"></button>';
+    document.body.appendChild(lnMenu);
+    lnMenu.addEventListener("click", function (e) {
+      var b = e.target;
+      while (b && b !== lnMenu && b.tagName !== "BUTTON") b = b.parentNode;
+      if (!b || b === lnMenu || !lnMenuFor) return;
+      var v = b.getAttribute("data-v"), k = lineKey(pText(lnMenuFor));
+      if (v === "follow") delete perLine[k]; else perLine[k] = v;
+      closeLnMenu();
+      renderView();   // 逐行样式写在页 HTML 里，必须重排
+    });
+    return lnMenu;
+  }
+  function openLnMenu(p, x, y, n, alignEnd) {
+    var m = ensureLnMenu();
+    lnMenuFor = p;
+    var cur = perLine[lineKey(pText(p))] || "follow";
+    m.querySelector(".ln-m-title").textContent = lineMenuTitle(n || p.__ln || paraNumber(p));
+    var bs = m.querySelectorAll("button");
+    bs[0].textContent = i18nT("ln.menu.follow", "跟随全文");
+    bs[1].textContent = i18nT("ln.menu.center", "居中");
+    bs[2].textContent = i18nT("ln.menu.left", "左对齐");
+    for (var i = 0; i < bs.length; i++) bs[i].className = bs[i].getAttribute("data-v") === cur ? "cur" : "";
+    m.classList.add("open");
+    var w = m.offsetWidth, h = m.offsetHeight, left;
+    if (alignEnd) {
+      // 桌面临界：优先摆在行号左边（版心外是空白，不挡字）；左边放不下再摆到右边
+      left = x - w;
+      if (left < 8) left = x + 20;
+    } else {
+      left = x - w / 2;                        // 手机：以触点为中心
+    }
+    left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+    var top = y - h - 12;                      // 手机上锚在触点上方，避开手指
+    if (top < 8) top = Math.min(y + 16, window.innerHeight - h - 8);
+    m.style.left = left + "px";
+    m.style.top = top + "px";
+  }
+  function closeLnMenu() {
+    if (lnMenu) lnMenu.classList.remove("open");
+    lnMenuFor = null;
+  }
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (t && t.classList && t.classList.contains("ln")) return;   // 点行号是「打开 / 换行」，不是「点空白关闭」
+    if (lnMenu && lnMenu.classList.contains("open") && !lnMenu.contains(t)) closeLnMenu();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeLnMenu();
+  });
+  window.addEventListener("resize", closeLnMenu);
+  // 点行号：菜单锚在数字右侧
+  preview.addEventListener("click", function (e) {
+    var t = e.target;
+    if (!t || !t.classList || !t.classList.contains("ln")) return;
+    var g = t.parentNode, n = +t.getAttribute("data-n"), p = null, kids = g.children;
+    for (var i = 0; i < kids.length; i++) if (kids[i].__ln === n) { p = kids[i]; break; }
+    if (!p) return;
+    var r = t.getBoundingClientRect();
+    openLnMenu(p, r.left - 10, r.bottom - 4, n, true);
+  });
+  // —— 手机：长按整行（隐形热区）——
+  // 500ms 触发、位移 >10px 或提前抬手取消；350ms 先给淡底色作为「已识别」的反馈。
+  // 触发后必须吃掉随后的 click，否则会连带触发「点字改读音」。
+  var lp = { timer: 0, press: 0, x: 0, y: 0, p: null, fired: false };
+  function lpCancel() {
+    if (lp.timer) { clearTimeout(lp.timer); lp.timer = 0; }
+    if (lp.press) { clearTimeout(lp.press); lp.press = 0; }
+    if (lp.p) lp.p.classList.remove("ln-press");
+    lp.p = null;
+  }
+  preview.addEventListener("touchstart", function (e) {
+    if (alignMode !== "poem" || !isTouchOnly || document.body.classList.contains("reading-mode")) return;
+    if (e.touches.length !== 1) return;
+    var p = paraOf(e.target);
+    if (!p) return;
+    lpCancel();
+    lp.x = e.touches[0].clientX;
+    lp.y = e.touches[0].clientY;
+    lp.p = p;
+    lp.fired = false;
+    lp.press = setTimeout(function () { lp.press = 0; if (lp.p) lp.p.classList.add("ln-press"); }, 350);
+    lp.timer = setTimeout(function () {
+      lp.timer = 0;
+      lp.fired = true;
+      // 兜底：万一浏览器没发那次 click，标记不能一直挂着，否则会吃掉后面一次正常点击
+      if (lp.firedT) clearTimeout(lp.firedT);
+      lp.firedT = setTimeout(function () { lp.fired = false; }, 1500);
+      if (lp.p) {
+        lp.p.classList.remove("ln-press");
+        if (navigator.vibrate) { try { navigator.vibrate(8); } catch (eVib) {} }
+        openLnMenu(lp.p, lp.x, lp.y, lp.p.__ln);
+      }
+    }, 500);
+  }, { passive: true });
+  preview.addEventListener("touchmove", function (e) {
+    if (!lp.timer) return;
+    var t = e.touches[0];
+    if (!t) return;
+    if (Math.abs(t.clientX - lp.x) > 10 || Math.abs(t.clientY - lp.y) > 10) lpCancel();
+  }, { passive: true });
+  preview.addEventListener("touchend", function () { if (lp.timer) lpCancel(); });
+  preview.addEventListener("touchcancel", lpCancel);
+  preview.addEventListener("contextmenu", function (e) {
+    if (alignMode === "poem" && isTouchOnly && lp.fired) e.preventDefault();
+  });
+  document.addEventListener("click", function (e) {
+    if (!lp.fired) return;
+    lp.fired = false;
+    // 菜单自己的点击不能吃掉；只有「长按后紧跟的那次 click」要拦
+    if (lnMenu && lnMenu.contains(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+  // —— 一次性提示条：隐形热区没有任何视觉线索，这条提示是它唯一的发现路径 ——
+  function syncAlignHint() {
+    var box = $("ta-hint");
+    if (!box || !isTouchOnly) return;
+    var seen = false;
+    try { seen = localStorage.getItem(TAHINT_KEY) === "1"; } catch (eAl) { seen = false; }
+    box.style.display = alignMode === "poem" && !seen ? "flex" : "none";
+  }
+  $("ta-hint-ok").addEventListener("click", function () {
+    $("ta-hint").style.display = "none";
+    try { localStorage.setItem(TAHINT_KEY, "1"); } catch (eAl2) {}
+  });
+
   function renderView() {
     /* 长文模式入口：粘贴 / 导入超 3 万字自动转入；长文状态下输入框被替换为摘要，
        若检测到输入框内容与摘要不符（清空 / 换新文件），视情况退出或重入长文模式 */
@@ -3240,7 +3532,8 @@ function applyI18n() {
         var par = paras[p];
         if (par.trim()) {
           computeSegBounds(par, off);
-          html += "<p>" + annotate(par, off) + "</p>";
+          var pl2 = alignMode === "poem" ? perLine[lineKey(par)] : "";
+          html += "<p" + (pl2 ? ' style="text-align:' + pl2 + '"' : "") + ">" + annotate(par, off) + "</p>";
         }
         off += par.length + 1;
       }
@@ -3254,6 +3547,8 @@ function applyI18n() {
     }
     fitPagesZoom();
     syncPrintStyle();
+    // 行号最后画：连续排版是复制 innerHTML 到打印区的，先编号会把数字带进打印
+    renderLineNumbers();
   }
 
   // 打印输出区在 #preview 之外，字号 / 字体 / 间距等内联样式与「显示拼音」状态
@@ -4115,6 +4410,9 @@ function applyI18n() {
     if (alignMode === v) return;
     alignMode = v;
     syncAlignButtons();
+    document.body.classList.toggle("ta-lp", isTouchOnly && v === "poem");
+    closeLnMenu();
+    syncAlignHint();
     renderView();
   }
   $("ta-left").addEventListener("click", function () { setAlign("left"); });
@@ -4166,9 +4464,12 @@ function applyI18n() {
     cyrOpts.tone = true; syncCyrButtons();
     syncPhScheme("py");
     setZyDir("h");
-    // 对齐回到左对齐
+    // 对齐回到左对齐，逐行覆盖一并清空
     alignMode = "left";
+    perLine = {};
     syncAlignButtons();
+    document.body.classList.remove("ta-lp");
+    syncAlignHint();
     // 读音标准：恢复大陆读音
     setTwStd(false);
     // 简繁转换：恢复简体 ⇆ 标准繁体、不转词汇
@@ -4209,6 +4510,7 @@ function applyI18n() {
       cyrTone: cyrOpts.tone,
       zydir: zyDir,
       align: alignMode,
+      perLine: perLine,
       tw: twStd,
       ocv: ocVariant(),
       ocp: $("oc-phrases").checked
@@ -4292,9 +4594,12 @@ function applyI18n() {
     if (typeof saved.cyrTone === "boolean") cyrOpts.tone = saved.cyrTone;
     syncWgsButtons();
     if (saved.zydir === "h" || saved.zydir === "v") setZyDir(saved.zydir);
-    // 对齐档位
+    // 对齐档位 + 逐行覆盖
     alignMode = (saved.align === "center" || saved.align === "poem") ? saved.align : "left";
+    perLine = (saved.perLine && typeof saved.perLine === "object") ? saved.perLine : {};
     syncAlignButtons();
+    document.body.classList.toggle("ta-lp", isTouchOnly && alignMode === "poem");
+    syncAlignHint();
     // 读音标准（台湾读音差异表为懒加载，恢复后异步重渲染）
     if (saved.tw === true || saved.tw === false) setTwStd(saved.tw);
     else if (window.__VARIANT && window.__VARIANT.tw) setTwStd(true);                // zhuyin 版默认台湾读音
