@@ -162,6 +162,7 @@ node build.js
 - **音標轉寫對照**：`node check-translit.js` 用 kfcd/pinyin 的 2095 條音節逐條核對通用拼音、耶魯拼音、威妥瑪（嚴式 / 簡式）、注音二式、國語羅馬字、西里爾轉寫的拼寫與調值（國語羅馬字拼寫即承載聲調；國語羅馬字與西里爾都直接逐字元比對）；簡式的兩個開關也會自檢。漢語拼音與注音符號是基準寫法，不參與比對。先在倉庫根目錄放一份對照表：`gh api repos/kfcd/pinyin/contents/pinyinbiao -H "Accept: application/vnd.github.raw" > .ty-biao.tsv`（該檔案不入庫）。
 - **候選讀音自檢**：`node check-alts.js` 掃描全部多音字，檢查九種方案下的候選是否混入方案外的字元（如注音模式裡出現拉丁字母）或顯示重複的選項。
 - **內嵌字型**：`fonts/build-andika.py <Andika-Regular.ttf>` 重建 Andika 子集，`fonts/check-coverage.py` 檢查兩個內嵌字型是否涵蓋所有音標方案用到的字元（含組合調號與 unicode-range）。兩者需要 `pip install fonttools brotli`，僅改字型時使用。
+- **訪問統計（可選）**：統計程式碼不寫在原始碼裡，由 `inject-analytics.js` 在 CI 推送 `dist` 前注入，因此**本機構建的成品與 Release 包都是乾淨的**。想給自己的部署接統計，設好 `UMAMI_WEBSITE_ID` 與 `UMAMI_SCRIPT_URL`（tracker 的完整位址，如 `https://analytics.example.net/analytics.js`）再執行 `node inject-analytics.js dist`；未設定時腳本直接跳過，不會失敗。多個網域共用同一個網站也可以：Umami 不按網域攔截上報，用 hostname 過濾區分即可。
 
 ## 參與貢獻
 
@@ -186,7 +187,7 @@ node build.js
 - 線上字型（霞鶩文楷 GB / TC、芫荽等）僅在主動選擇時從 CDN 載入字型檔案，不涉及文章內容；
 - 長文模式「合併 PDF」所用的合併元件（pdf-lib）首次使用時從 CDN 載入，之後走瀏覽器快取，合併過程完全在本機完成；
 - 閱讀模式的「朗讀」用瀏覽器內建語音，念的就是頁面上這篇文章，不經過任何伺服器；「麥克風跟讀」走瀏覽器的語音辨識，瀏覽器廠商可能會處理音訊（首次開啟前會先詢問一次），介意的話不開就行；
-- 工具預設不收集任何個人資訊，無統計、無廣告。
+- 工具不收集個人資訊，無廣告。**官方線上版**有自架的匿名訪問統計（不使用 Cookie、不讀取也不上傳文章內容、不記錄可追蹤的個人的資訊），只回報一條類似「從知乎來的美國的訪客在 Win10 筆電上用 Chrome 打開了主線版的頁面」的訊息，用於了解大家大致的使用量、常用哪些功能、判斷哪些功能值得繼續維護；**從 Release 下載的離線檔案、以及 fork 後自建的部署都不含統計程式碼**（本來不想加的，奈何 GitHub 的訪問統計做得太爛，只能自己造輪子）。
 
 ## 準確性說明
 
