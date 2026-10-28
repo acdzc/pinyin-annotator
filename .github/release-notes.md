@@ -7,15 +7,15 @@
 
 ## 简体中文
 
-**版本选择页补上对齐**：首页的功能列表加了「对齐三档」——左对齐 / 居中 / 诗词，标题那行还能单独调。功能本身在 {{PREV}} 已经上线，这次只是把介绍补齐。
+**访问统计换成自己的了**：GitHub Pages 的访问统计做得太烂——只统计仓库页面，跟站点访问根本没关系，所以改为接自己的统计。它只数页面访问量，不用 Cookie、不读取也不上传你贴的文章，也不记录能追到个人的信息。从 Release 下载的离线包、以及 fork 后自建的版本，都不带这段代码。
 
 ## 繁體中文
 
-**版本選擇頁補上對齊**：首頁的功能列表加了「對齊三檔」——左對齊 / 置中 / 詩詞，標題那行還能單獨調。功能本身在 {{PREV}} 已經上線，這次只是把介紹補齊。
+**訪問統計換成自己的了**：GitHub Pages 的訪問統計做得太爛——只統計倉庫頁面，跟站點訪問根本沒關係，所以改為接自己的統計。它只數頁面訪問量，不用 Cookie、不讀取也不上傳你貼的文章，也不記錄能追到個人的資訊。從 Release 下載的離線包、以及 fork 後自建的版本，都不帶這段程式碼。
 
 ## English
 
-**Landing page catches up.** The feature list on the home page now mentions the three alignment modes — left / centre / poem, and any single line (such as the title) can differ. The feature itself shipped in {{PREV}}; this release only adds it to the list.
+**Traffic stats now come from a self-hosted counter.** GitHub Pages' built-in traffic page is useless for a website — it only counts views of the repository, not the pages people actually visit — so the site now reports to its own counter. It only counts page views: no cookies, it never reads or uploads the text you paste, and nothing it stores can be traced back to a person. The offline zip downloaded from Releases, and any self-hosted copy after forking, contain none of that code.
 
 ---
 
